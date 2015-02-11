@@ -1,1 +1,7 @@
+set PATH=c:/tmpuser/tools/work/_git/atomboxer_windows/bin/;c:/tmpuser/tools/work/_git/qt_48_win32/lib/;c:/tmpuser/tools/work/_git/qt_48_win32/src/3rdparty/openssl-1.0.1k/;c:/tmpuser/tools/mingw64/bin/
+
 mpatrol.log
+.tern-port
+.tern-project
+\#*
+*~

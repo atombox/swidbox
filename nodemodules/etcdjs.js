@@ -7,14 +7,13 @@ var http = require("http");
 
 function abLogger(cfg)
 {
-    console.log("[debug ->]")
-    console.dir(cfg);
-    console.log("[<- debug]")
+    //console.log("[debug ->]")
+    //console.dir(cfg);
+    //console.log("[<- debug]")
 }
 
 var request = function abHttpAgent(req, callback)
 {
-
     var url = u.parse(req.uri);
     if (!req.headers)
         req.headers = {};
@@ -32,7 +31,6 @@ var request = function abHttpAgent(req, callback)
 
     if (req.qs && req.qs !== {}) {
         url.pathname += ("?"+querystring.stringify(req.qs));
-        console.writeln(url.pathname);
     }
 
     abLogger(req);
@@ -53,7 +51,7 @@ var request = function abHttpAgent(req, callback)
         });
 
         resp.finished.connect( function() {
-            console.log("[debug] resp.finished");
+            //console.log("[debug] resp.finished");
             rqst = undefined;
             callback(err, {'headers':resp.headers,
                            'statusCode':resp.status,
@@ -62,7 +60,7 @@ var request = function abHttpAgent(req, callback)
         });
 
         resp.error.connect(function(e) {
-            console.log("[debug] resp.error"+e);
+            //console.log("[debug] resp.error"+e+"::"+body);
             err = e;
         });
     });
@@ -371,7 +369,7 @@ Client.prototype._request = function(opts, cb) {
         if (response.statusCode > 299) return cb(toError(response));
 
         var body = response.body;
-        console.dir(response.body);
+
         if (!self._json || !body.node) return cb(null, body);
 
         try {
