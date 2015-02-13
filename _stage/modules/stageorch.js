@@ -9,9 +9,9 @@ var __log = function(msg)
     console.writeln("[debug orch.js] "+msg);
 }
 
-function Orch(etcd, ip, port)
+function StageOrch(etcd, ip, port)
 {
-    if (!(this instanceof Orch)) return new Orch(etcd, ip, port);
+    if (!(this instanceof StageOrch)) return new StageOrch(etcd, ip, port);
 
     //  etcd object
     this._store = require("../../nodemodules/etcdjs")(etcd);
@@ -31,9 +31,9 @@ function Orch(etcd, ip, port)
     this.keepAlive()
 }
 
-Orch.prototype.keepAlive = function()
+StageOrch.prototype.keepAlive = function()
 {
-    __log("orch.prototype.startKeepAlive:"+this._ttl);
+    //__log("orch.prototype.startKeepAlive:"+this._ttl);
 
     var self = this;
 
@@ -49,7 +49,7 @@ Orch.prototype.keepAlive = function()
                 
                 self._ttl_timer.setSingleShot(true);
                 self._ttl_timer.start(self._ttl);
-                console.dir(system.processStats());                
+                //console.dir(system.processStats());                
             }, function(e) {
                 console.error("[error orch.js.etcd] etcdSetStatus etcd error:"+e);
                 system.exit(0);   
@@ -62,13 +62,13 @@ Orch.prototype.keepAlive = function()
     }).done();
 }
 
-Orch.prototype.nodeName = function()
+StageOrch.prototype.nodeName = function()
 {    
     return this._etcd_prefix+
         system.hostname+"$"+system.pid;
 }
 
-Orch.prototype.etcdSetStatus = function()
+StageOrch.prototype.etcdSetStatus = function()
 {
     var def  = q.defer();
     var self = this;
@@ -90,7 +90,7 @@ Orch.prototype.etcdSetStatus = function()
     return def.promise;
 }
 
-Orch.prototype.etcdCreateNodeDirIfNeeded = function()
+StageOrch.prototype.etcdCreateNodeDirIfNeeded = function()
 {
     var def  = q.defer();
     var self = this;
@@ -110,7 +110,7 @@ Orch.prototype.etcdCreateNodeDirIfNeeded = function()
     return def.promise;
 }
 
-Orch.prototype.etcdCreateDirIfNeeded = function()
+StageOrch.prototype.etcdCreateDirIfNeeded = function()
 {
     var def = q.defer();
     var self = this;
@@ -120,7 +120,7 @@ Orch.prototype.etcdCreateDirIfNeeded = function()
     else {
         self._store.get(self._etcd_prefix, function(err,resp) {
             if (resp)
-                if (JSON.parse(resp).errorCode > 0) {
+                if (resp.errorCode > 0) {
                     self._store.mkdir(self._etcd_prefix, function(err,resp) {
                         def.resolve();
                     });            
@@ -136,5 +136,5 @@ Orch.prototype.etcdCreateDirIfNeeded = function()
     return def.promise;
 }
 
-module.exports = Orch;
+module.exports = StageOrch;
 

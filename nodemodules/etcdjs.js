@@ -4,6 +4,7 @@ var roundround = require('roundround');
 var querystring = require('http/querystring');
 var u = require('http/url');
 var http = require("http");
+var console = require("console");
 
 function abLogger(cfg)
 {
@@ -34,7 +35,7 @@ var request = function abHttpAgent(req, callback)
     }
 
     abLogger(req);
-
+  
     var rqst = http.request({host:url.hostname,
                              port:parseInt(url.port),
                              method:req.method,
@@ -47,16 +48,15 @@ var request = function abHttpAgent(req, callback)
         var err = undefined;
 
         resp.data.connect(function (data) {
-            body = data.decodeToString();
+            body = data.decodeToString().replace(/\"value\":/g,'"_value":');
         });
 
         resp.finished.connect( function() {
-            //console.log("[debug] resp.finished");
-            rqst = undefined;
+            rqst = undefined;            
             callback(err, {'headers':resp.headers,
                            'statusCode':resp.status,
                            'uri':resp.url(),
-                           'body':body});
+                           'body':JSON.parse(body)});
         });
 
         resp.error.connect(function(e) {
@@ -308,8 +308,9 @@ Client.prototype.destroy = function() {
 };
 
 var decodeJSON = function(node) {
+    console.writeln("decodeJSON");
     if (node.nodes) node.nodes.forEach(decodeAll);
-    if (node.value !== undefined) node.value = JSON.parse(node.value);
+    if (node._value !== undefined) node.value = JSON.parse(node._value);
 };
 
 var toError = function(response) {
@@ -350,7 +351,7 @@ Client.prototype._request = function(opts, cb) {
 
     var req = request(opts, function onresponse(err, response) {
         gc(self._requests, req);
-
+        
         if (canceled) return;
         if (self._destroyed) return cb(new Error('store destroyed'));
         if (err && tries-- > 0) {
@@ -364,7 +365,7 @@ Client.prototype._request = function(opts, cb) {
             opts.uri = response.headers.location;
             return request(opts, onresponse);
         }
-
+        
         if (response.statusCode === 404 && !opts.method || opts.method === 'GET') return cb(null, response.body);
         if (response.statusCode > 299) return cb(toError(response));
 
