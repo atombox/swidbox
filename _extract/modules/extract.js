@@ -55,6 +55,7 @@ Extractor.prototype.init = function()
                 console.assert(IP   != undefined, "ip cannot be undefined");
                 console.assert(PORT != undefined, "port cannot be undefined");
                 this._stageclient = new StageClient(IP, PORT);
+
                 this._stageclient.connectToStage().then( function(d) {
                     def.resolve();
                 }, function(e) {
