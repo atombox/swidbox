@@ -6,6 +6,9 @@ var express = require('express');
 var compression = require('compression');
 var cookieParser = require('cookie-parser');
 var expressBeautify = require('express-beautify')();
+var debug = require('debug')('http')
+
+var swaggerize = require('swaggerize-express');
 
 var app = express();
 
@@ -13,6 +16,12 @@ app.use(compression());
 app.use(cookieParser());
 app.use(express.static(path.join(process.cwd(), 'public')));
 app.use(expressBeautify);
+
+app.use(swaggerize({
+    api: path.resolve('../RESTAPI/metastore.yml'),
+    handlers: path.resolve('./rest_handlers')
+})); 
+
 
 var package = require('./package.json');
 
@@ -60,7 +69,7 @@ var rtl = html.replace(new RegExp('{dir}', 'g'), 'rtl');
 var renderApp = function(req, res, cb) {
     var router = ReactRouter.create({
         routes: routes,
-        location: req.url,
+        location: req.url.replace("/frontend",""),
         onAbort: function(redirect) {
             cb({redirect: redirect});
         },
@@ -108,26 +117,27 @@ var renderApp = function(req, res, cb) {
 // /** END X-EDITABLE ROUTES */
 
 /** CATCH-ALL ROUTE **/
-app.get('*', function(req, res, next) {
-    if(req.url === '/favicon.ico') return next();
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'X-Requested-With');
-    var isRTL = req.cookies.rubix_dir === 'rtl' ? true : false;
-    renderApp(req, res, function(err, h, token) {
-        if(isRTL)
-            h = rtl.replace(new RegExp('{container}', 'g'), h || '');
-        else
-            h = ltr.replace(new RegExp('{container}', 'g'), h || '');
+// app.get('/frontend', function(req, res, next) {
+//     if(req.url === '/favicon.ico') return next();
+    
+//     res.header('Access-Control-Allow-Origin', '*');
+//     res.header('Access-Control-Allow-Headers', 'X-Requested-With');
+//     var isRTL = req.cookies.rubix_dir === 'rtl' ? true : false;
+//     renderApp(req, res, function(err, h, token) {
+//         if(isRTL)
+//             h = rtl.replace(new RegExp('{container}', 'g'), h || '');
+//         else
+//             h = ltr.replace(new RegExp('{container}', 'g'), h || '');
 
-        if (!err) {
-            res.sendHTML(h);
-        } else if (error.redirect) {
-            res.redirect(error.redirect.to);
-        } else if (error.notFound) {
-            res.status(404).sendHTML(h);
-        }
-    });
-});
+//         if (!err) {
+//             res.sendHTML(h);
+//         } else if (error.redirect) {
+//             res.redirect(error.redirect.to);
+//         } else if (error.notFound) {
+//             res.status(404).sendHTML(h);
+//         }
+//     });
+// });
 
 var server = app.listen(process.env.PORT, function() {
     try {

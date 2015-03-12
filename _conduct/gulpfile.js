@@ -527,11 +527,9 @@ gulp.task('watch', function()
     //gulp.watch(paths.l20n, ['react-l20n:watch']);
     //gulp.watch(paths.scss, ['rebuild:css']);
     //gulp.watch(paths.bootstrap, ['react-bootstrap:watch']);
-    console.log("start 5");
     //gulp.watch(paths.ttf, ['base64-css:watch'])
-    console.log("start 6");
-    //gulp.watch(paths.jsx.concat(paths.scss), ['notify']);
-    gulp.watch(['app.js', 'routes/**/*.js', 'views/**/*.hbs','routes/*.js', 'views/*.hbs',], ['express']);
+    gulp.watch(paths.jsx.concat(paths.scss), ['notify']);
+    gulp.watch(['server.jsx', 'rest_routes/*.js', 'rest_handlers/*.js', 'rest_handlers/**/*.js', 'rest_models/*.js'], ['express']);
 });
 
 function ready() {

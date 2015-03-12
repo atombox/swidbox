@@ -1,0 +1,436 @@
+swagger: "2.0"
+info: 
+  title: "SwidBox _conduct API"
+  description: "This is the RESTFULL API that _conduct will provide"
+  version: "1.0.0"
+host: "localhost:3000"
+schemes: 
+  - "http"
+basePath: "/api"
+produces: 
+  - "application/json"
+paths:
+
+  /metastore/_all:
+    #
+    #  Gets all the stores
+    #
+    get:
+      summary: "Gets all the stores"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+      operationId: "getAllMetaStores"
+      responses:
+        200:
+          description: "All the stores id's" 
+          schema:
+            type: "array"
+            items: 
+              type: "string"
+            
+        500:
+          description: "Server error"
+          schema:
+            $ref: '#/definitions/Error'
+          
+      
+  /metastore/{StoreId}: 
+    #
+    #  Gets information about a metastore
+    #
+    get: 
+      summary: "Gets information about a metastore"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+      operationId: "getMetaStoreById"
+      responses: 
+        200: 
+          description: "OK"
+          schema:
+            type: "boolean"
+
+        500:
+          description: "Server error"
+          schema:
+            $ref: '#/definitions/Error'
+      parameters: 
+        - 
+          in: "path"
+          name: "StoreId"
+          description: "The metaid. If ommitted all the sets will be returned."
+          type: "string"
+          required: true
+
+    #
+    #  Create a new MetaStore
+    #
+    put:
+      summary: "Creates a new metaset"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      operationId: "createMetaStore"
+      responses:
+
+        201:
+          description : "created"
+          schema:
+            type: "boolean"
+
+        412:
+          description: "Allready exists"
+          schema:
+            $ref: "#/definitions/Error"
+
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/Error"
+
+        500:
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/Error"
+            
+      parameters:
+        -
+          in:   "path"
+          name: "StoreId"
+          type: "string"
+
+    #
+    #  Deletes a MetaStore together with all the sets
+    #
+    delete:
+      summary: "Deletes a MetaStore together with all the sets"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      operationId: "deleteMetaStore"
+      responses:
+        200:
+          description : "OK"
+          schema:
+            type: "boolean"
+
+        default:
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/Error"
+            
+      parameters:
+        -
+          in:   "path"
+          name: "StoreId"
+          type: "string"
+
+
+  /metastore/{StoreId}/_find_object_by_export:
+    #
+    #  Gets an object by a matching export
+    #
+    get:
+      summary: "Gets an object by a corresponding export"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+
+      operationId: "getObjectByExport"
+      responses:
+        200:
+          description: "The metaobject" 
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: "Error"
+          schema:
+            $ref: '#/definitions/Error'
+
+      parameters: 
+        - 
+          in: "path"
+          name: "StoreId"
+          description: "The metaid"
+          type: "string"
+          required: true
+        -
+          in          : "query"
+          description : "The export name to search for"
+          name        : "name"
+          type        : "string"
+
+
+  /metastore/{StoreId}/_all:
+    #
+    #  Gets all the object names
+    #
+    get:
+      summary: "Gets all theobject names"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+
+      operationId: "getAllObjects"
+      responses:
+        200:
+          description: "All the names" 
+          schema:
+            type: "array"
+            items: 
+              type: "string"
+        
+        default:
+          description: "Error"
+          schema:
+            $ref: '#/definitions/Error'
+      parameters: 
+        - 
+          in: "path"
+          name: "StoreId"
+          description: "The metaid"
+          type: "string"
+          required: true
+
+  /metastore/{StoreId}/_globals:
+    #
+    #  Gets all the object names
+    #
+    get:
+      summary: "Gets all global metaobjects"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+
+      operationId: "getAllObjects"
+      responses:
+        200:
+          description: "All the names" 
+          schema:
+            type: "array"
+            items: 
+              type: "string"
+        
+        default:
+          description: "Error"
+          schema:
+            $ref: '#/definitions/Error'
+      parameters: 
+        - 
+          in: "path"
+          name: "StoreId"
+          description: "The metaid"
+          type: "string"
+          required: true
+
+  /metastore/{StoreId}/_exports:
+    #
+    #  Gets all the object names
+    #
+    get:
+      summary: "Gets all the object names"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+
+      operationId: "getExports"
+      responses:
+        200:
+          description: "All the names" 
+          schema:
+            type: "array"
+            items: 
+              type: "string"
+        
+        default:
+          description: "Error"
+          schema:
+            $ref: '#/definitions/Error'
+      parameters: 
+        - 
+          in: "path"
+          name: "StoreId"
+          description: "The metaid"
+          type: "string"
+          required: true
+        -
+          in: "query"
+          name : name
+          type : "string"
+          required: false
+
+  /metastore/{StoreId}/{ObjectName}: 
+    #
+    #  Gets a ObjectName by name
+    #
+    get: 
+      summary: "Gets a MetaObject by name"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+      operationId: "getMetObjectByName"
+      responses: 
+        200: 
+          description: "OK"
+          schema:
+            $ref: '#/definitions/MetaSet'
+        500:
+          description: "Server error"
+          schema:
+            $ref: '#/definitions/Error'
+      parameters: 
+        - 
+          in: "path"
+          name: "StoreId"
+          description: "The metaid."
+          type: "string"
+          required: true
+        -
+          in:   "path"
+          name: "ObjectName"
+          type: "string"
+          required: true
+
+    #
+    #  Creates a new ObjectName
+    #
+    put:
+      summary: "Creates a new MetaObject"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      operationId: "createMetaObject"
+      responses:
+        200:
+          description: Array with all exports
+          schema:
+            type: "array"
+            items:
+              type: "string"
+
+        400:
+          description: "Invalid request"
+          schema:
+            $ref: "#/definitions/Error"
+
+        401:
+          description: "Parse error"
+          schema:
+            $ref: "#/definitions/ParseError"
+
+        409:
+          description: "Allready exists"
+          schema:
+            $ref: "#/definitions/Error"
+
+        default:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+
+      parameters:
+        - 
+          in: path
+          name: StoreId
+          description: "The metaid"
+          type: string
+          required: true
+        -
+          in: path
+          name: ObjectName
+          type: string
+          required: true
+        -
+          in: body
+          name: MetaObject
+          required: true
+          schema:
+            $ref: '#/definitions/MetaSet'
+                      
+    #
+    #  Deletes a ObjectName
+    #
+    delete:
+      summary: "Deletes ObjectName"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      operationId: "deleteObjectName"
+      responses:
+        200:
+          description: OK
+          schema:
+            type: "boolean"
+        500:
+          description: Some description
+          schema:
+            $ref: '#/definitions/Error'
+      parameters:
+        - 
+          in: path
+          name: StoreId
+          description: "The metaid. If ommitted all the sets will be returned."
+          type: string
+        -
+          in: path
+          name: ObjectName
+          type: string
+      
+definitions: 
+  MetaSet:
+    required:
+      - type
+      - content
+    type: "object"
+    properties: 
+      type: 
+        type: "string"
+        description: "ddl or mdbcsv"
+      global:
+        type: "boolean"
+      content:
+        type: "string"
+        description: "base64 encoded file"
+      exports:
+        type: "array"
+        items:
+          type: "string"
+
+  Error:
+    required:
+      - error
+      - reason
+    type: "object"
+    properties:
+      error:
+        type: "string"
+      reason:
+        type: "string"
+
+  ParseError:
+    required:
+      - error
+      - line
+      - column
+    type: "object"
+    properties:
+      error:
+        type: "string"
+      line:
+        type: "integer"
+      column:
+        type: "integer"
+
+
