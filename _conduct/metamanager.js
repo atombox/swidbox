@@ -12,16 +12,16 @@ function MetaManager(atombox_path)
 {
     debug('MetaManager started:'+atombox_path);
 
-    this.atombox_path_                 = atombox_path;
+    this.atombox_path_                 =  atombox_path;
     this.atombox_temp_global_ddl_js_   = 'temp_global_abscript_ddl.js';
 }
 
 /**
  * @returns {MetaObject}
  */
-MetaManager.prototype.findObjectByExport = function( storeid, name )
+MetaManager.prototype.findObjectsByExport = function( storeid, name )
 {
-    debug('findObjectByExport');
+    debug('MataManager findObjectByExport::'+name);
 
     var self  = this;
     var defer = q.defer();
@@ -32,15 +32,11 @@ MetaManager.prototype.findObjectByExport = function( storeid, name )
         return;
     }
 
-    GLOBAL.couchManager.findObjectNameByExport(storeid, name)
-        .then( function(n) {
-            self.getMetaObjectByName(storeid, n).then(function (ok) {
-                defer.resolve(ok);
-            }, function (rej) {
-                defer.reject(rej); 
-            });
-        }, function(e) {
-            defer.reject(e); 
+    GLOBAL.couchManager.findObjectsByExport(storeid, name)
+        .then( function(arr) {
+            defer.resolve({'status':200, 'body':arr});
+        }, function (rej) {
+            defer.reject(rej); 
         }).done();
 
     return defer.promise;
@@ -102,14 +98,16 @@ MetaManager.prototype.getMetaObjectByName = function( storeid, name )
             metaobj.exports = d.exports;
             metaobj.type    = d.type;
             metaobj.global  = d.global;
-            GLOBAL.couchManager.getAttachment(storeid, name).then(function(d) {
-                metaobj.content = d.toString('base64');
-                defer.resolve({'status':200, 'body':metaobj});
+            metaobj.content = d.content;
+            // GLOBAL.couchManager.getAttachment(storeid, name).then(function(d) {
+            //     metaobj.content = d.toString('base64');
+            //     defer.resolve({'status':200, 'body':metaobj});
 
-            }, function(e) {
-                console.error(e);
-                defer.reject(e);                 
-            });
+            // }, function(e) {
+            //     console.error(e);
+            //     defer.reject(e);                 
+            // });
+            defer.resolve({'status':200, 'body':metaobj});
         }, function(e) {
             defer.reject(e); 
         }).done();
@@ -144,36 +142,36 @@ MetaManager.prototype.createMetaObject = function( storeid,  /*string*/
 
     metaobj.timestamp = new Date();
 
-    self.mergeAllGlobals(storeid).then (function (global_content) {
-        self.atomboxDDLEvaluate(name, global_content, 
+    self.mergeAllGlobals(storeid).then (function (global_buffer) {
+        self.atomboxDDLEvaluate(name, global_buffer, 
                                 metaobj.content).then(function(r) {        
-            //
-            //  All OK so let's modify the DB
-            //
-            GLOBAL.couchManager.createObject(storeid, name, metaobj, r)
-                .then( function(d) {
-                    defer.resolve({status:200, 'exports':r});
-                    temp.cleanup();
-                }, function(e) {
-                    console.dir(e);
-                    defer.reject(e); 
-                }).done();
-            
-        }, function(e) {
-            var line   = -1;
-            var column = -1;
+                                    //
+                                    //  All OK so let's modify the DB
+                                    //
+                                    GLOBAL.couchManager.createObject(storeid, name, metaobj, r)
+                                        .then( function(d) {
+                                            defer.resolve({status:200, 'exports':r});
+                                            temp.cleanup();
+                                        }, function(e) {
+                                            console.dir(e);
+                                            defer.reject(e); 
+                                        }).done();
+                                    
+                                }, function(e) {
+                                    var line   = -1;
+                                    var column = -1;
 
-            if ((marr = e.match(/[0-9]+:[0-9]+/gi)) != null) {
-                var arr = marr[0].split(':');
-                line    = parseInt(arr[0]);
-                column  = parseInt(arr[1]);
-            }
+                                    if ((marr = e.match(/[0-9]+:[0-9]+/gi)) != null) {
+                                        var arr = marr[0].split(':');
+                                        line    = parseInt(arr[0]);
+                                        column  = parseInt(arr[1]);
+                                    }
 
-            defer.reject({status:401, error:e,
-                          line:line,
-                          column:column});
+                                    defer.reject({status:401, error:e,
+                                                  line:line,
+                                                  column:column});
 
-        });
+                                });
     }, function(e) {
         defer.reject(e);
     });
@@ -213,48 +211,60 @@ MetaManager.prototype.deleteMetaObject = function( storeid, /*string*/
 }
 
 
-MetaManager.prototype.atomboxDDLEvaluate = function( name, global_code, code )
+MetaManager.prototype.atomboxDDLEvaluate = function( name, global_buffer, code )
 {
     debug('atombox evaluate:'+name);
 
     var defer = q.defer();
     var self = this;
     temp.open('__global__', function(err, ginfo) {
-        fs.write(ginfo.fd, global_code, 0, 'base64', function (err, data) {
-            fs.close(ginfo.fd, function() {
-                temp.open(name, function(err, info) {
-                    if (!err) {
-                        fs.write(info.fd, code, 0, 'base64', function(err, data) {
-                            if (err) {
-                                throw err;
-                            }
-                            fs.close(info.fd, function(err) {
-                                debug(self.atombox_path_+ " "+self.atombox_temp_global_ddl_js_+
-                                      " "+ginfo.path+
-                                      " "+info.path);
-                                
-                                exec(self.atombox_path_+ " "+self.atombox_temp_global_ddl_js_+
-                                     " "+ginfo.path+
-                                     " "+info.path, function( err, 
-                                                              stdout, 
-                                                              stderr ) {
-                                         console.log(stderr);
-                                         var result = self.atomboxParseOutput(stderr);
-                                         if (result.error != undefined) {
-                                             defer.reject(result.error);
-                                         } else {                             
-                                             defer.resolve(result.exports);
-                                         }
-                                     });
-                            });
-                        });
-                    } else {
-                        throw new Error(err);
-                    }
-                });
+        console.log(global_buffer.length);      
+        try {            
+            fs.write(ginfo.fd, global_buffer,0, global_buffer.length, 0,  
+                     function (err, data) {
 
-            })
-        })
+                         fs.close(ginfo.fd, function() {
+                             temp.open(name, function(err, info) {
+                                 fs.write(info.fd, code, 0, 'base64', function(err, data) {
+                                     if (err) {
+                                         throw err;
+                                     }
+
+                                     fs.close(info.fd, function(err) {
+                                         debug(self.atombox_path_+ " "
+                                               +self.atombox_temp_global_ddl_js_+
+                                               " "+ginfo.path+
+                                               " "+info.path);
+                                         
+                                         exec(self.atombox_path_+ " "+
+                                              self.atombox_temp_global_ddl_js_+
+                                              " "+ginfo.path+
+                                              " "+info.path, {
+                                                  maxBuffer : 1024*1024,
+                                                  
+                                              }, function( err, 
+                                                           stdout, 
+                                                           stderr ) {
+                                                  
+                                                  if (err) {
+                                                      console.dir(err);
+                                                  }
+                                                  console.log(stderr);
+                                                  var result = self.atomboxParseOutput(stderr);
+                                                  if (result.error != undefined) {
+                                                      defer.reject(result.error);
+                                                  } else {                             
+                                                      defer.resolve(result.exports);
+                                                  }
+                                              });
+                                     });
+                                 });
+                             });
+
+                         }) 
+                     });} catch(e) {
+                         console.dir(e);
+                     }
     });
 
     return defer.promise;
@@ -262,7 +272,6 @@ MetaManager.prototype.atomboxDDLEvaluate = function( name, global_code, code )
 
 MetaManager.prototype.atomboxParseOutput = function( output )
 {
-    console.log('output:'+output);
 
     if (output != undefined && output.toString().replace(/ /gi,"").length == 0) {
         return {'error':'Fatal error - Atombox failed to start!'};
@@ -296,56 +305,12 @@ MetaManager.prototype.atomboxParseOutput = function( output )
 MetaManager.prototype.mergeAllGlobals = function(storeid)
 {
     debug('Merge all globals');
+
     var defer = q.defer();
     var self = this;
 
-    this.listAllObjects(storeid,true/*globals*/).then( function (obj) {
-        var objects = obj.body;
-
-        if (objects.length == undefined) 
-            throw Error('objects.length should not be undefined');
-        
-        if (objects.length == 0) {
-            defer.resolve('');
-        } else {   
-            try {
-                var promises = [];
-                var buffers  = [];
-
-                function getGlobalContent(idx) {
-                    try {
-                        var def = q.defer();
-                        self.getMetaObjectByName(storeid, objects[idx]).then (
-                            function(o) {
-                            buffers.push(new Buffer(o.body.content,'base64'));
-                            def.resolve(idx+1);
-                        }, function(e) {                            
-                            console.log(e);
-                        });
-                    } catch(e) {
-                        console.log(e);
-                    }
-                    return def.promise;
-                }
-
-                for (var i=0;i<objects.length;i++) {
-                    promises.push(getGlobalContent);
-                }
-
-                var result = q(0);
-
-                for (var i=0;i<promises.length; i++) {
-                    result = result.then(promises[i]);
-                }
-
-                result.then( function( ok ) {
-                    defer.resolve(Buffer.concat(buffers).toString('base64'));
-                });
-
-            } catch(e) {
-                console.error(e);
-            }
-        }        
+    GLOBAL.couchManager.viewGlobalContent(storeid).then(function(buffer) {
+        defer.resolve(buffer);
     }, function(e) {
         defer.reject(e);
     });

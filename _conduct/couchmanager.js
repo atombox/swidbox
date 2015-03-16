@@ -24,29 +24,36 @@ CouchManager.prototype.createDatabase = function(name)
         }
 
         //design
-        var list_globals = function (doc) {
+        var view_globals = function (doc) {
             if (doc.global == true)
                 emit (doc.timestamp,doc._id);
         }
 
         //design
-        var list_all = function (doc) {
+        var view_all = function (doc) {
             emit (doc.timestamp,doc._id);
+        }
+        
+        //
+        var view_global_content = function(doc) {
+            if (doc.global == true) {
+                emit (doc.timestamp, doc.content);
+            }
         }
 
         //design
-        var list_exports = function (doc) {
+        var view_exports = function (doc) {
             emit (doc._id, doc.exports);
         }
 
         //design
-        var list_global_exports = function (doc) {
+        var view_global_exports = function (doc) {
             if (doc.global == true)
                 emit (doc._id, doc.exports);
         }
 
         //design
-        var list_nonglobal_exports = function (doc) {
+        var view_nonglobal_exports = function (doc) {
             if (doc.global == false)
                 emit (doc._id, doc.exports);
         }        
@@ -59,11 +66,12 @@ CouchManager.prototype.createDatabase = function(name)
         db.insert( 
             { 
                 views: 
-                { list_globals   : { map: list_globals.toString()},
-                  list_all: { map: list_all.toString()},
-                  list_exports   : { map: list_exports.toString()},
-                  list_global_exports    : { map: list_global_exports.toString()},
-                  list_nonglobal_exports : { map: list_nonglobal_exports.toString()}
+                { view_globals   : { map: view_globals.toString()},
+                  view_all: { map: view_all.toString()},
+                  view_global_content : { map: view_global_content.toString() },
+                  view_exports   : { map: view_exports.toString()},
+                  view_global_exports    : { map: view_global_exports.toString()},
+                  view_nonglobal_exports : { map: view_nonglobal_exports.toString()}
                 }
             }, "_design/metastore", function (e,b) {
                 if (e)
@@ -92,7 +100,7 @@ CouchManager.prototype.deleteDatabase = function(name)
     return def.promise;
 }
 
-CouchManager.prototype.findObjectNameByExport = function (db, name)
+CouchManager.prototype.findObjectsByExport = function (db, name)
 {
     debug('findObjectByExport:'+name);
     
@@ -100,8 +108,7 @@ CouchManager.prototype.findObjectNameByExport = function (db, name)
 
     var database = this.nano_.use(db);
     
-    var view = 'list_exports';
-
+    var view = 'view_exports';
 
     database.view('metastore', view, function(e, b) {
         var arr = [];
@@ -115,11 +122,11 @@ CouchManager.prototype.findObjectNameByExport = function (db, name)
 
         var obj = {};
 
-        var nam = undefined;
+        var nam = [];
         for (var i in b.rows)
             for (var e in b.rows[i].value) {
                 if (b.rows[i].value[e] == name) {
-                    nam = b.rows[i].key;
+                    nam.push(b.rows[i].key);
                 }
             }
 
@@ -166,7 +173,7 @@ CouchManager.prototype.listAllObjects = function(db, global)
     var database = this.nano_.use(db);
     
     var view = (global == false || 
-                global == undefined)?'list_all':'list_globals';
+                global == undefined)?'view_all':'view_globals';
 
     database.view('metastore', view, function(e, b) {
         var arr = [];
@@ -193,10 +200,10 @@ CouchManager.prototype.listExports = function (db, global, key)
 
     var database = this.nano_.use(db);
     
-    var view = 'list_exports';
+    var view = 'view_exports';
 
     if (global != undefined)
-        view = (global == false)?'list_nonglobal_exports':'list_global_exports';
+        view = (global == false)?'view_nonglobal_exports':'view_global_exports';
     
     var params = undefined;
 
@@ -289,17 +296,19 @@ CouchManager.prototype.createObject = function(db,
                       'global':metaobj.global,
                       'exports':exports,
                       'timestamp':metaobj.timestamp,
-                      _attachments:{ 'source':{ 
-                          'content_type':"text\/plain", 
-                          'data':metaobj.content}}}, docname, 
-                                     function(e, b) {
-                                         if (e) {
-                                             def.reject({status:e.statusCode, 
-                                                         error:e.error, 
-                                                         reason:e.reason});
-                                         }
-                                         def.resolve(b);
-                                     });
+                      'content':metaobj.content,
+                      /* _attachments:{ 'source':{ 
+                         'content_type':"text\/plain", 
+                         'data':metaobj.content}}*/
+                     }, docname, 
+                     function(e, b) {
+                         if (e) {
+                             def.reject({status:e.statusCode, 
+                                         error:e.error, 
+                                         reason:e.reason});
+                         }
+                         def.resolve(b);
+                     });
 
 
     return def.promise;
@@ -335,6 +344,37 @@ CouchManager.prototype.deleteObject = function(db, docname)
     return def.promise;
 }
 
+
+CouchManager.prototype.viewGlobalContent = function(db) 
+{
+    debug('viewGlobalContent in:'+db);
+
+    var def = q.defer();
+
+    var database = this.nano_.use(db);
+    
+    var view = 'view_global_content';
+
+    database.view('metastore', view, function(e, b) {
+        var files = [];
+
+        if (e) {
+            def.reject({status:e.statusCode, 
+                        error:e.error, 
+                        reason:e.reason})
+            return e;
+        }
+
+        for (var i in b.rows) {
+            files.push(new Buffer(b.rows[i].value, 'base64'));
+        }
+
+        def.resolve(Buffer.concat(files));
+    });
+
+
+    return def.promise;
+}
 
 
 module.exports = CouchManager;

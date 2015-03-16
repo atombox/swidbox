@@ -9,11 +9,10 @@ module.exports = {
      * parameters: 
      * produces: application/json
      */
-    get: function findObjectByExport(req, res) {
-        GLOBAL.metaManager.findObjectByExport('meta_'+req.params.StoreId, 
-                                              req.query.name)
+    get: function findObjectsByExport(req, res) {
+        GLOBAL.metaManager.findObjectsByExport('meta_'+req.params.StoreId, 
+                                               req.query.name)
             .then( function(r) {
-                console.log('sending');
                 res.status(r.status).send( r.body );
             }, function(e) {           
                 console.log('rejecting');

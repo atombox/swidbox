@@ -131,23 +131,26 @@ paths:
           type: "string"
 
 
-  /metastore/{StoreId}/_find_object_by_export:
+  /metastore/{StoreId}/_find_objects_by_export:
     #
-    #  Gets an object by a matching export
+    #  Gets the list of object names that has the export
     #
     get:
-      summary: "Gets an object by a corresponding export"
+      summary: "Gets the list of object names that has the export"
       consumes: 
         - "application/json"
       produces: 
         - "application/json"
 
-      operationId: "getObjectByExport"
+      operationId: "getObjectsByExport"
       responses:
         200:
-          description: "The metaobject" 
+          description: "Array of names" 
           schema:
-            $ref: '#/definitions/Error'
+            type : "array"
+            items:
+              type: "string"
+
         default:
           description: "Error"
           schema:
