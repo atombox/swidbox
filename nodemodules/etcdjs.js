@@ -23,12 +23,12 @@ var request = function abHttpAgent(req, callback)
 
     if (req.form) {
         req.headers['content-type'] = 'application/x-www-form-urlencoded';
-        req.body = querystring.stringify(req.form).replace('_value','value');        
+        req.body = querystring.stringify(req.form);
+    } else {
+        if (req.json) {
+            req.headers['content-type']='application/json';
+        }
     }
-
-    // if (req.json) {
-    //     req.headers['content-type']='application/json';
-    // }
 
     if (req.qs && req.qs !== {}) {
         url.pathname += ("?"+querystring.stringify(req.qs));
@@ -48,7 +48,8 @@ var request = function abHttpAgent(req, callback)
         var err = undefined;
 
         resp.data.connect(function (data) {
-            body = data.decodeToString().replace(/\"value\":/g,'"_value":');
+            body = data.decodeToString();
+            //console.log('[debug] response:'+body);
         });
 
         resp.finished.connect( function() {
@@ -133,9 +134,9 @@ Client.prototype.set = function(key, value, opts, cb) {
 
     var form = {};
 
-    if (value) form['_value'] = value;
+    if (value) form['value'] = value;
     if (opts.ttl) form.ttl = ''+opts.ttl;
-    if (opts.dir) form.dir = 'true';
+    if (opts.dir) form.dir = true;
 
     if (opts.prevExist !== undefined) form.prevExist = ''+opts.prevExist;
     if (opts.prevValue !== undefined) form.prevValue = this._json ? JSON.stringify(opts.prevValue) : ''+opts.prevValue;
@@ -310,7 +311,7 @@ Client.prototype.destroy = function() {
 var decodeJSON = function(node) {
     console.writeln("decodeJSON");
     if (node.nodes) node.nodes.forEach(decodeAll);
-    if (node._value !== undefined) node.value = JSON.parse(node._value);
+    if (node.value !== undefined) node.value = JSON.parse(node.value);
 };
 
 var toError = function(response) {

@@ -40,9 +40,9 @@ Extractor.prototype.init = function()
                 for (var i=0; i<r.node.nodes.length;i++) {
                     var kp = r.node.nodes[i].key.split(/\//);
                     if (kp[kp.length-1] == "IP") {
-                        IP = r.node.nodes[i]._value;
+                        IP = r.node.nodes[i].value;
                     } else if (kp[kp.length-1] == "PORT") {
-                        PORT = r.node.nodes[i]._value;
+                        PORT = r.node.nodes[i].value;
                     } else {
                         console.error("Unknown key in stager");
                         system.exit(0);

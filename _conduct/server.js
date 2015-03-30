@@ -6,10 +6,10 @@ var express    = require('express');
 var bodyParser = require('body-parser');
 //var multer     = require('multer'); 
 
-var compression = require('compression');
-var cookieParser = require('cookie-parser');
+var compression     = require('compression');
+var cookieParser    = require('cookie-parser');
 var expressBeautify = require('express-beautify')();
-var swaggerize = require('swaggerize-express');
+var swaggerize      = require('swaggerize-express');
 
 var app = express();
 
@@ -18,10 +18,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //app.use(multer()); 
 
 //swidbox classes
-var CouchManager = require("./couchmanager.js");
-var MetaManager  = require('./metamanager.js');
-GLOBAL.couchManager = new CouchManager('10.57.4.72', 9726);
-GLOBAL.metaManager  = new MetaManager('C:\\tmpuser\\tools\\work\\_git\\atomboxer_windows\\install\\atombox\\packages\\com.atomboxer.atombox\\data\\bin\\ab.exe');
+var MetaCouchManager      = require("./metacouchmanager.js");
+var MetaManager           = require('./metamanager.js');
+var StageFlowManager      = require('./stageflowmanager.js');
+var StageCouchManager     = require('./stagecouchmanager.js');
+
+GLOBAL.metaCouchManager  = new MetaCouchManager ('10.57.4.72', 9726);
+GLOBAL.stageCouchManager = new StageCouchManager('10.57.4.72', 9726);
+ 
+
+GLOBAL.metaManager       = new MetaManager('C:\\tmpuser\\tools\\work\\_git\\atomboxer_windows\\bin\\ab.exe');
+GLOBAL.stageFlowManager  = new StageFlowManager(['127.0.0.1:4001',
+                                                 '127.0.0.1:2379']);
+
 
 app.use(compression());
 app.use(cookieParser());

@@ -28,7 +28,7 @@ module.exports = {
         var storeId = req.params.StoreId;
         storeId = "meta_"+storeId;
 
-        GLOBAL.couchManager.createDatabase(storeId).then( function(r) {
+        GLOBAL.metaCouchManager.createDatabase(storeId).then( function(r) {
             res.sendStatus(200);
         }, function(e) {
             res.status(e.status).send({'error':e.error, 'reason':e.reason})
@@ -45,7 +45,7 @@ module.exports = {
         storeId = "meta_"+storeId;
 
         debug('deleteMetaStore:'+storeId);
-        GLOBAL.couchManager.deleteDatabase(storeId).then( function(r) {
+        GLOBAL.metaCouchManager.deleteDatabase(storeId).then( function(r) {
             res.sendStatus(200);
         }, function(e) {
             res.status(e.status).send({'error':e.error, 'reason':e.reason})

@@ -32,7 +32,7 @@ MetaManager.prototype.findObjectsByExport = function( storeid, name )
         return;
     }
 
-    GLOBAL.couchManager.findObjectsByExport(storeid, name)
+    GLOBAL.metaCouchManager.findObjectsByExport(storeid, name)
         .then( function(arr) {
             defer.resolve({'status':200, 'body':arr});
         }, function (rej) {
@@ -52,7 +52,7 @@ MetaManager.prototype.listAllObjects = function( storeid, global )
     var self  = this;
     var defer = q.defer();
     
-    GLOBAL.couchManager.listAllObjects(storeid, global)
+    GLOBAL.metaCouchManager.listAllObjects(storeid, global)
         .then( function(d) {
             defer.resolve({'status':200, 'body':d});
         }, function(e) {
@@ -72,7 +72,7 @@ MetaManager.prototype.listExports = function( storeid, global, key )
     var self  = this;
     var defer = q.defer();
     
-    GLOBAL.couchManager.listExports(storeid, global, key)
+    GLOBAL.metaCouchManager.listExports(storeid, global, key)
         .then( function(d) {
             defer.resolve({'status':200, 'body':d});
         }, function(e) {
@@ -92,14 +92,14 @@ MetaManager.prototype.getMetaObjectByName = function( storeid, name )
     var self  = this;
     var defer = q.defer();
     
-    GLOBAL.couchManager.getObject(storeid, name)
+    GLOBAL.metaCouchManager.getObject(storeid, name)
         .then( function(d) {
             var metaobj = {};
             metaobj.exports = d.exports;
             metaobj.type    = d.type;
             metaobj.global  = d.global;
             metaobj.content = d.content;
-            // GLOBAL.couchManager.getAttachment(storeid, name).then(function(d) {
+            // GLOBAL.metaCouchManager.getAttachment(storeid, name).then(function(d) {
             //     metaobj.content = d.toString('base64');
             //     defer.resolve({'status':200, 'body':metaobj});
 
@@ -148,7 +148,7 @@ MetaManager.prototype.createMetaObject = function( storeid,  /*string*/
                                     //
                                     //  All OK so let's modify the DB
                                     //
-                                    GLOBAL.couchManager.createObject(storeid, name, metaobj, r)
+                                    GLOBAL.metaCouchManager.createObject(storeid, name, metaobj, r)
                                         .then( function(d) {
                                             defer.resolve({status:200, 'exports':r});
                                             temp.cleanup();
@@ -199,7 +199,7 @@ MetaManager.prototype.deleteMetaObject = function( storeid, /*string*/
     //
     //  All OK so let's modify the DB
     //
-    GLOBAL.couchManager.deleteObject(storeid, name)
+    GLOBAL.metaCouchManager.deleteObject(storeid, name)
         .then( function(d) {
             defer.resolve({status:200});
         }, function(e) {
@@ -309,7 +309,7 @@ MetaManager.prototype.mergeAllGlobals = function(storeid)
     var defer = q.defer();
     var self = this;
 
-    GLOBAL.couchManager.viewGlobalContent(storeid).then(function(buffer) {
+    GLOBAL.metaCouchManager.viewGlobalContent(storeid).then(function(buffer) {
         defer.resolve(buffer);
     }, function(e) {
         defer.reject(e);

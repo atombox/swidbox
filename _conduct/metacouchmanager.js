@@ -4,15 +4,15 @@ var debug = require('debug')('swidbox:couchmanager');
 var nano  = require('nano');
 var q     = require('q');
 
-function CouchManager(server, port) 
+function MetaCouchManager(server, port) 
 {
     this.server_ = server;
     this.port_   = port;
     this.nano_   = require('nano')('http://'+server+":"+port);
-    debug('CouchManager started at'+this.nano_.config.url);    
+    debug('MetaCouchManager started at'+this.nano_.config.url);    
 }
 
-CouchManager.prototype.createDatabase = function(name) 
+MetaCouchManager.prototype.createDatabase = function(name) 
 {
     debug('couch create database '+name);
     var def = q.defer();
@@ -84,7 +84,7 @@ CouchManager.prototype.createDatabase = function(name)
     return def.promise;
 }
 
-CouchManager.prototype.deleteDatabase = function(name) 
+MetaCouchManager.prototype.deleteDatabase = function(name) 
 {
     debug('couch delete database '+name);
     var def = q.defer();
@@ -100,10 +100,13 @@ CouchManager.prototype.deleteDatabase = function(name)
     return def.promise;
 }
 
-CouchManager.prototype.findObjectsByExport = function (db, name)
+MetaCouchManager.prototype.findObjectsByExport = function (db, name)
 {
-    debug('findObjectByExport:'+name);
-    
+    debug('findObjectByExport {StoreId}:'+db+' {name}:'+name);
+
+    if (db.substr(0,5) != "meta_")
+        db = 'meta_'+db;
+
     var def = q.defer();
 
     var database = this.nano_.use(db);
@@ -145,7 +148,7 @@ CouchManager.prototype.findObjectsByExport = function (db, name)
     
 }
 
-CouchManager.prototype.listDatabases = function() 
+MetaCouchManager.prototype.listDatabases = function() 
 {
     debug('couch list databases');
 
@@ -164,7 +167,7 @@ CouchManager.prototype.listDatabases = function()
 }
 
 
-CouchManager.prototype.listAllObjects = function(db, global) 
+MetaCouchManager.prototype.listAllObjects = function(db, global) 
 {
     debug('listAllObjects in:'+db);
     
@@ -194,7 +197,7 @@ CouchManager.prototype.listAllObjects = function(db, global)
     return def.promise;
 }
 
-CouchManager.prototype.listExports = function (db, global, key) 
+MetaCouchManager.prototype.listExports = function (db, global, key) 
 {
     var def = q.defer();
 
@@ -237,7 +240,7 @@ CouchManager.prototype.listExports = function (db, global, key)
     return def.promise;
 }
 
-CouchManager.prototype.getObject = function(db, docname) 
+MetaCouchManager.prototype.getObject = function(db, docname) 
 {
     debug('get '+docname+'object in:'+db);
     
@@ -258,7 +261,7 @@ CouchManager.prototype.getObject = function(db, docname)
     return def.promise;
 }
 
-CouchManager.prototype.getAttachment = function(db, docname) 
+MetaCouchManager.prototype.getAttachment = function(db, docname) 
 {
     debug('get attachment '+docname+'object in:'+db);
     
@@ -278,7 +281,7 @@ CouchManager.prototype.getAttachment = function(db, docname)
     return def.promise;
 }
 
-CouchManager.prototype.createObject = function(db, 
+MetaCouchManager.prototype.createObject = function(db, 
                                                docname, 
                                                metaobj, 
                                                exports) 
@@ -314,7 +317,7 @@ CouchManager.prototype.createObject = function(db,
     return def.promise;
 }
 
-CouchManager.prototype.deleteObject = function(db, docname) 
+MetaCouchManager.prototype.deleteObject = function(db, docname) 
 {
     debug('delete document in:'+db);
 
@@ -345,7 +348,7 @@ CouchManager.prototype.deleteObject = function(db, docname)
 }
 
 
-CouchManager.prototype.viewGlobalContent = function(db) 
+MetaCouchManager.prototype.viewGlobalContent = function(db) 
 {
     debug('viewGlobalContent in:'+db);
 
@@ -372,9 +375,8 @@ CouchManager.prototype.viewGlobalContent = function(db)
         def.resolve(Buffer.concat(files));
     });
 
-
     return def.promise;
 }
 
 
-module.exports = CouchManager;
+module.exports = MetaCouchManager;

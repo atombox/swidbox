@@ -76,16 +76,18 @@ StageOrch.prototype.etcdSetStatus = function()
     self._store.mkdir(self.nodeName(), {ttl:10, prevExist:true}, function(err,resp) {
         self._store.set(self.nodeName()+"/"+"IP", self._ip, function(e, r) {
             if (e) {
-                def.reject(new Error("cannot set key"));
+                console.dir(e);
+                def.reject(new Error("cannot set key:"+self.nodeName()+"/"+"IP"));
             }
             self._store.set(self.nodeName()+"/"+"PORT", self._port, function(e,r) {
-                if (e)
-                    def.reject(new Error("cannot set key"));
-                else
+                if (e) {
+                    console.dir(e);
+                    def.reject(new Error("cannot set key:"+self.nodeName()+"/"+"PORT"));
+                } else
                     def.resolve();                        
             });
         });        
-    });   
+    });
    
     return def.promise;
 }

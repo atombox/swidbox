@@ -10,7 +10,7 @@ module.exports = {
      * produces: application/json
      */
     get: function getAllMetaStores(req, res) {
-        GLOBAL.couchManager.listDatabases().then( function(r) {
+        GLOBAL.metaCouchManager.listDatabases().then( function(r) {
             var arr = [];
 
             r.map(function(val) {

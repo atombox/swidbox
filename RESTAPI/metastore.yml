@@ -22,6 +22,7 @@ paths:
       produces: 
         - "application/json"
       operationId: "getAllMetaStores"
+      tags: ["store"]
       responses:
         200:
           description: "All the stores id's" 
@@ -29,7 +30,6 @@ paths:
             type: "array"
             items: 
               type: "string"
-            
         500:
           description: "Server error"
           schema:
@@ -47,6 +47,7 @@ paths:
       produces: 
         - "application/json"
       operationId: "getMetaStoreById"
+      tags: ["store"]
       responses: 
         200: 
           description: "OK"
@@ -75,6 +76,8 @@ paths:
       produces:
         - "application/json"
       operationId: "createMetaStore"
+      tags: ["store"]
+      
       responses:
 
         201:
@@ -113,6 +116,8 @@ paths:
       produces:
         - "application/json"
       operationId: "deleteMetaStore"
+      tags: ["store"]
+      
       responses:
         200:
           description : "OK"
@@ -141,7 +146,8 @@ paths:
         - "application/json"
       produces: 
         - "application/json"
-
+      tags: ["store"]
+      
       operationId: "getObjectsByExport"
       responses:
         200:
@@ -180,8 +186,9 @@ paths:
         - "application/json"
       produces: 
         - "application/json"
-
       operationId: "getAllObjects"
+      tags: ["store"]
+      
       responses:
         200:
           description: "All the names" 
@@ -214,6 +221,8 @@ paths:
         - "application/json"
 
       operationId: "getAllObjects"
+      tags: ["store"]
+      
       responses:
         200:
           description: "All the names" 
@@ -246,6 +255,8 @@ paths:
         - "application/json"
 
       operationId: "getExports"
+      tags: ["store"]
+      
       responses:
         200:
           description: "All the names" 
@@ -282,6 +293,8 @@ paths:
       produces: 
         - "application/json"
       operationId: "getMetObjectByName"
+      tags: ["store"]
+      
       responses: 
         200: 
           description: "OK"
@@ -314,6 +327,8 @@ paths:
       produces:
         - "application/json"
       operationId: "createMetaObject"
+      tags: ["store"]
+      
       responses:
         200:
           description: Array with all exports
@@ -371,6 +386,7 @@ paths:
       produces:
         - "application/json"
       operationId: "deleteObjectName"
+      tags: ["store"]
       responses:
         200:
           description: OK
@@ -390,7 +406,233 @@ paths:
           in: path
           name: ObjectName
           type: string
-      
+
+################################
+#  STAGING                     #
+################################
+  /metastore/stage/{token}/_all:
+    #
+    #  Gets a ObjectName by name
+    #
+    get: 
+      summary: "Gets the list of all the stage profile names configured for this token"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+      operationId: "getAllStageProfileNames"
+      tags: ["stage"]
+      responses: 
+        200: 
+          description: "Array with all the stage profile names configured"
+          schema:
+            type : "array"
+            items :
+              type : "string"
+        default:
+          description: "Server error"
+          schema:
+            $ref: '#/definitions/Error'
+  
+      parameters: 
+        - 
+          in: "path"
+          name: "token"
+          description: "The token string"
+          type: "string"
+          required: true
+  /metastore/stage/{token}/_all:
+    #
+    #  Gets a ObjectName by name
+    #
+    get: 
+      summary: "Gets the list of all the stage profile names configured for this token"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+      operationId: "getAllStageProfileNames"
+      tags: ["stage"]
+      responses: 
+        200: 
+          description: "Array with all the stage profile names configured"
+          schema:
+            type : "array"
+            items :
+              type : "string"
+        default:
+          description: "Server error"
+          schema:
+            $ref: '#/definitions/Error'
+  
+      parameters: 
+        - 
+          in: "path"
+          name: "token"
+          description: "The token string"
+          type: "string"
+          required: true
+
+
+  /metastore/stage/{token}/{name}:
+    #
+    #  Gets a stage-flow by name
+    #
+    get: 
+      summary: "Gets the StageFlow object for the coresponding name"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+      operationId: "getStageFlow"
+      tags: ["stage"]
+      responses: 
+        200: 
+          description: "Array with all the stage profile names configured"
+          schema:
+            $ref : '#/definitions/StageFlow'
+        404:
+          description: "Profile not found"
+          schema:
+            $ref : '#/definitions/Error'
+        default:
+          description: "Server error"
+          schema:
+            $ref: '#/definitions/Error'
+  
+      parameters:
+        - 
+          in: "path"
+          name: "token"
+          description: "The token string"
+          type: "string"
+          required: true
+        -
+          in: "path"
+          name : "name"
+          description : "StageFlow name"
+          type: "string"
+          required: true
+
+    #
+    # Creates a new stage flow 
+    #
+    put: 
+      summary: "Creates a new stage flow"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+      operationId: "createStageFlow"
+      tags: ["stage"]
+      responses: 
+        200: 
+          description: "OK"
+          schema:
+            type : "boolean"
+        default:
+          description: "Server error"
+          schema:
+            $ref: '#/definitions/Error'
+  
+      parameters:
+        - 
+          in: "path"
+          name: "token"
+          description: "The token string"
+          type: "string"
+          required: true
+        -
+          in: "path"
+          name : "name"
+          description : "Stage profile name"
+          type: "string"
+          required: true
+        -
+          in: "body"
+          name: "stageflow"
+          description: "the StageFlow object"
+          schema:
+            $ref: "#/definitions/StageFlow"
+          required: true
+
+    #
+    # Updates a stage flow 
+    #
+    post: 
+      summary: "Update a stage flow"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+      operationId: "updateStageFlow"
+      tags: ["stage"]
+      responses: 
+        200: 
+          description: "OK"
+          schema:
+            type : "boolean"
+        default:
+          description: "Server error"
+          schema:
+            $ref: '#/definitions/Error'
+  
+      parameters:
+        - 
+          in: "path"
+          name: "token"
+          description: "The token string"
+          type: "string"
+          required: true
+        -
+          in: "path"
+          name : "name"
+          description : "Stage profile name"
+          type: "string"
+          required: true
+        -
+          in: "body"
+          name: "stageflow"
+          description: "the StageFlow object"
+          schema:
+            $ref: "#/definitions/StageFlow"
+          required: true
+
+    #
+    # Deletes a stage flow 
+    #
+    delete: 
+      summary: "Deletes a stage flow"
+      consumes: 
+        - "application/json"
+      produces: 
+        - "application/json"
+      operationId: "deleteStageFlow"
+      tags: ["stage"]
+      responses: 
+        200: 
+          description: "OK"
+          schema:
+            type : "boolean"
+        default:
+          description: "Server error"
+          schema:
+            $ref: '#/definitions/Error'
+  
+      parameters:
+        - 
+          in: "path"
+          name: "token"
+          description: "The token string"
+          type: "string"
+          required: true
+        -
+          in: "path"
+          name : "name"
+          description : "Stage profile name"
+          type: "string"
+          required: true
+
 definitions: 
   MetaSet:
     required:
@@ -411,6 +653,37 @@ definitions:
         items:
           type: "string"
 
+  StageFlow:
+    type: "object"
+    required:
+      #- profile
+      - file
+      - type
+      - timer
+    properties:
+      #profile:
+      #  type: "string"
+      #  description: "Unique name identifying the stage flow"
+      file:
+        type: "string"
+        description: "The file name to stage"
+      type:
+        type : "string"
+        enum: ["key_seq","relative","entry_seq","unstructured"]
+        description: "The type of file involved in this stage"
+      timer:
+        type: "integer"
+        description: "Timer in second for this flow"
+      meta_storeid:
+        type : "string"
+        description: "The ID of the store {StoreId}"
+      meta_object_name:
+        type: "string"
+        description: "The name of the metaobject {ObjectName}"
+      meta_export:
+        type: "string"
+        description: "The definition used for staging"
+        
   Error:
     required:
       - error
