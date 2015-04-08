@@ -15,7 +15,7 @@ describe('Routing', function() {
             .delete('unstruct').set('Accept', 'application/json')
             .end( function() {
                 request(url+'/metastore/stage/token123/')
-                    .delete('enscr').set('Accept', 'application/json')
+                    .delete('emf').set('Accept', 'application/json')
                     .end(function() {
                         done();
                     });
@@ -78,20 +78,21 @@ describe('Routing', function() {
 
         it('should create a second flow', function(done) {
             var obj = {
-                "file": "c:\\tmp\\key.txt",
+                "file": "c:\\tmp\\emf.txt",
                 "type": "key_seq",
                 "timer": 10,
                 "meta_storeid": "mystore",
-                "meta_object_name": "aprfds",
-                "meta_export": "aprf"
+                "meta_object_name": "ddlfemf",
+                "meta_export": "emf"
             };
 
             request(url+'/metastore/stage/token123/')
-                .put('enscr').send(obj).set('Accept', 'application/json')
+                .put('emf').send(obj).set('Accept', 'application/json')
                 .end(function(e,r) {
 
-                if (e)
+                if (e) {
                     throw e;
+                }
                 r.status.should.equal(200);
                 done();
             });
@@ -108,7 +109,7 @@ describe('Routing', function() {
             };
 
             request(url+'/metastore/stage/token123/')
-                .put('enscr').send(obj).set('Accept', 'application/json')
+                .put('emf').send(obj).set('Accept', 'application/json')
                 .end(function(e,r) {
 
                 if (e)

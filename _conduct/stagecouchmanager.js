@@ -96,8 +96,9 @@ StageCouchManager.prototype.deleteAllFlows = function(token)
                             'status':err.statusCode});
                 return err;
             }
-            
+
             def.resolve(true);
+
         });
     })
     return def.promise;
@@ -119,7 +120,7 @@ StageCouchManager.prototype.addStageFlow = function(token, name, flow, update)
         var found = false;
         if (flows != undefined)
             for (var i=0;i<flows.length;i++) {
-                if (flows[i] != null && flows[i].name == name) {
+                if (flows[i] != null && flows[i]._name == name) {
                     if (update == true)
                         flows[i] = flow;
                     found = true;
@@ -127,7 +128,7 @@ StageCouchManager.prototype.addStageFlow = function(token, name, flow, update)
                 }
             };
 
-        flow.name = name;
+        flow._name = name;
 
         if (found && update != true) {
             def.reject({status:404,
@@ -181,10 +182,9 @@ StageCouchManager.prototype.deleteStageFlow = function(token, name)
         //  We have the flows array
         //
         var found = false;
-        console.dir('FLOWS!'+flows);
 
         for (var i=0;i<flows.length;i++) {
-            if (flows[i] != null && flows[i].name == name) {
+            if (flows[i] != null && flows[i]._name == name) {
                 flows.remove(i);
                 found = true;
                 break;
@@ -224,36 +224,5 @@ StageCouchManager.prototype.deleteStageFlow = function(token, name)
 
 
 
-    // StageCouchManager.prototype.viewGlobalContent = function(db) 
-    // {
-    //     debug('viewGlobalContent in:'+db);
 
-    //     var def = q.defer();
-
-    //     var database = this.nano_.use(db);
-    
-    //     var view = 'view_global_content';
-
-    //     database.view('metastore', view, function(e, b) {
-    //         var files = [];
-
-    //         if (e) {
-    //             def.reject({status:e.statusCode, 
-    //                         error:e.error, 
-    //                         reason:e.reason})
-    //             return e;
-    //         }
-
-    //         for (var i in b.rows) {
-    //             files.push(new Buffer(b.rows[i].value, 'base64'));
-    //         }
-
-    //         def.resolve(Buffer.concat(files));
-    //     });
-
-
-    //     return def.promise;
-    // }
-
-
-    module.exports = StageCouchManager;
+module.exports = StageCouchManager;

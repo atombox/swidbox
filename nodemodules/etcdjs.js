@@ -54,14 +54,17 @@ var request = function abHttpAgent(req, callback)
 
         resp.finished.connect( function() {
             rqst = undefined;            
-            callback(err, {'headers':resp.headers,
-                           'statusCode':resp.status,
-                           'uri':resp.url(),
-                           'body':JSON.parse(body)});
+            if (err) {
+                callback(err);
+            } else {
+                callback(err, {'headers':resp.headers,
+                               'statusCode':resp.status,
+                               'uri':resp.url(),
+                               'body':JSON.parse(body)});
+            }
         });
 
         resp.error.connect(function(e) {
-            //console.log("[debug] resp.error"+e+"::"+body);
             err = e;
         });
     });

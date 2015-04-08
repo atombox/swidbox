@@ -73,7 +73,13 @@ StageOrch.prototype.etcdSetStatus = function()
     var def  = q.defer();
     var self = this;
 
-    self._store.mkdir(self.nodeName(), {ttl:10, prevExist:true}, function(err,resp) {
+    self._store.mkdir(self.nodeName(), {ttl:this._ttl*2, prevExist:true}, function(err,resp) {
+
+        if (err) {
+            console.error('Unable to set the etcd token. Process exists!');
+            system.exit(0);
+        }
+
         self._store.set(self.nodeName()+"/"+"IP", self._ip, function(e, r) {
             if (e) {
                 console.dir(e);
