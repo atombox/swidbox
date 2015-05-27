@@ -7,6 +7,5 @@ function EtcdManager()
     debug('EtcdManager started:');
 }
 
-
-
 module.exports = EtcdManager;
+

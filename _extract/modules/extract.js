@@ -2,7 +2,9 @@
 var console     = require("console");
 var system      = require("system");
 var q           = require("q");
+q.stopUnhandledRejectionTracking();
 
+var EventEmitter = require('events').EventEmitter;
 
 var StageClient = require("stagecli");
 
@@ -13,7 +15,6 @@ var __log = function(msg)
 
 function Extractor(orch, stagepeer)
 {
-
     if (!(this instanceof Extractor)) return new Extractor(orch, stagepeer);
 
     __log("function Extractor(orch, stagepeer)");
@@ -23,11 +24,16 @@ function Extractor(orch, stagepeer)
     this._stageclient = undefined;
 }
 
+Extractor.prototype.__proto__ = EventEmitter.prototype;
+
+
 Extractor.prototype.init = function()
 {
     __log("Extractor.prototype.init");
 
     var def = q.defer();
+    var self = this;
+
     this._orch.getNode(this._stagepeer, {recursive:true, sorted:true}).then(
         function(r) {
 
@@ -48,15 +54,22 @@ Extractor.prototype.init = function()
                         system.exit(0);
                     }
                 }
-                                
+
                 __log("peer ip  :"+IP);
                 __log("peer port:"+PORT);
-                
+
                 console.assert(IP   != undefined, "ip cannot be undefined");
                 console.assert(PORT != undefined, "port cannot be undefined");
-                this._stageclient = new StageClient(IP, PORT);
 
-                this._stageclient.connectToStage().then( function(d) {
+                self._stageclient = new StageClient(IP, PORT);
+
+                self._stageclient.on('disconnected', function() {
+                    self._orch.setState('discover');
+                    self.emit('disconnected');
+                });
+
+                self._stageclient.connectToStage().then( function(d) {
+                    self._orch.setState('connected');
                     def.resolve();
                 }, function(e) {
                     def.reject();
@@ -68,5 +81,25 @@ Extractor.prototype.init = function()
 
     return def.promise;
 }
+
+Extractor.prototype.destroy = function()
+{
+    __log("Extractor.prototype.destroy");
+
+    var self = this;
+
+    if (self._stageclient !== undefined) {
+      self._stageclient.disconnectSocket();
+      self._stageclient = undefined;
+    }
+}
+
+Extractor.prototype.bootstrap = function()
+{
+    __log("Extractor.prototype.bootstrap");
+
+    
+}
+
 
 module.exports = Extractor;

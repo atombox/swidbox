@@ -27,7 +27,9 @@ GLOBAL.metaCouchManager  = new MetaCouchManager ('10.57.4.72', 9726);
 GLOBAL.stageCouchManager = new StageCouchManager('10.57.4.72', 9726);
 
 
-GLOBAL.metaManager       = new MetaManager('C:\\tmpuser\\tools\\work\\_git\\atomboxer_windows\\bin\\ab.exe');
+GLOBAL.metaManager       = new MetaManager
+             ('C:\\tmpuser\\tools\\work\\_git\\atomboxer_windows\\bin\\ab.exe');
+
 GLOBAL.stageFlowManager  = new StageFlowManager(['127.0.0.1:4001',
                                                  '127.0.0.1:2379']);
 

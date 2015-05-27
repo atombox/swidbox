@@ -6,7 +6,7 @@ var Timer = require("timers").Timer;
 
 var __log = function(msg)
 {
-    console.writeln("[debug orch.js] "+msg);
+    console.writeln("[debug stageorch.js] "+msg);
 }
 
 function StageOrch(etcd, ip, port)
@@ -28,12 +28,40 @@ function StageOrch(etcd, ip, port)
     // port where to listen for tcp/ip connections
     this._port = port;
 
+    this._token     = undefined;
+    this._connected = false;
+    this._state     = 'discover'; //'bootstrap' | 'connected' | 'rolling' | 'error'
+    this._etcd_last_message = '';
+
     this.keepAlive()
+}
+
+StageOrch.prototype.setState = function( state )
+{
+    __log('setState : '+state);
+
+    if (state == undefined)  {
+        console.error('Programmatic error in setState.');
+        system.exit(0);
+    }
+
+    switch(state) {
+        case 'bootstrap':  
+        case 'discover':
+        case 'connected':
+        case 'rolling': this._state = state; break;
+        case 'error' : this._state = state; this._etcd_last_message = ""; break;
+        default: {
+            console.error('programmatic erorr in setState');
+            system.exit(0);
+        }
+    }
+
+    __log('******STATE FOR EXTRACT CHANGED TO:'+this._state);   
 }
 
 StageOrch.prototype.keepAlive = function()
 {
-    //__log("orch.prototype.startKeepAlive:"+this._ttl);
 
     var self = this;
 
@@ -68,6 +96,21 @@ StageOrch.prototype.nodeName = function()
         system.hostname+"$"+system.pid;
 }
 
+StageOrch.prototype.etcdSetKey = function(key, val)
+{
+    var def  = q.defer();
+    var self = this;
+    
+    self._store.set(key, val, function(e, r) {
+        if (e)
+            def.reject(e);
+        else
+            def.resolve();
+    });
+
+    return def.promise;
+}
+
 StageOrch.prototype.etcdSetStatus = function()
 {
     var def  = q.defer();
@@ -80,19 +123,17 @@ StageOrch.prototype.etcdSetStatus = function()
             system.exit(0);
         }
 
-        self._store.set(self.nodeName()+"/"+"IP", self._ip, function(e, r) {
-            if (e) {
-                console.dir(e);
-                def.reject(new Error("cannot set key:"+self.nodeName()+"/"+"IP"));
-            }
-            self._store.set(self.nodeName()+"/"+"PORT", self._port, function(e,r) {
-                if (e) {
-                    console.dir(e);
-                    def.reject(new Error("cannot set key:"+self.nodeName()+"/"+"PORT"));
-                } else
-                    def.resolve();                        
-            });
-        });        
+        q.all([self.etcdSetKey(self.nodeName()+"/"+"IP", self._ip),
+               self.etcdSetKey(self.nodeName()+"/"+"PORT", self._port)/*,
+               self.etcdSetKey(self.nodeName()+"/"+"status", self._state),
+               self.etcdSetKey(self.nodeName()+"/"+"message",self._etcd_last_message)*/])
+
+              .then( function(e,r) {                   
+                   def.resolve();
+               })._catch( function(e) {
+                  __log('unable to set the keys?!. Etcd connection lost.');
+                   system.exit(0);
+               });
     });
    
     return def.promise;

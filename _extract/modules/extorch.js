@@ -1,8 +1,10 @@
 var console = require("console");
 var system  = require("system");
 var q       = require("q");
+q.stopUnhandledRejectionTracking();
 
 var Timer   = require("timers").Timer;
+var EventEmitter = require('events').EventEmitter;
 
 var ExtractFileManager = require('exfilmgr.js').ExtractFileManager;
 
@@ -11,6 +13,9 @@ var __log = function(msg)
     console.writeln("[debug extorch.js] "+msg);
 }
 
+//
+//  emits 'stage_changed'
+//
 function ExtractOrch(etcd, token)
 {
     if (!(this instanceof ExtractOrch)) return new ExtractOrch(etcd, token);
@@ -33,7 +38,9 @@ function ExtractOrch(etcd, token)
     // unique identifying a flow
     this._token = token;
 
-    this._state = 'bootstrap'; //'discover'|'rolling'|'error'
+    this._state             = 'bootstrap'; //'discover'| 'rolling' |'error'
+    this._etcd_last_message = '';
+
 
     this._flows = [];
 
@@ -45,74 +52,165 @@ function ExtractOrch(etcd, token)
         system.exit(0);
     }, function() {
         self.keepAlive(); //start the timer
-    });
+    }).done();
 
+}
+
+ExtractOrch.prototype.__proto__ = EventEmitter.prototype;
+
+ExtractOrch.prototype.setState = function( state )
+{
+    __log('setState : '+state);
+
+    if (state == undefined)  {
+        console.error('Programmatic error in setState.');
+        system.exit(0);
+    }
+
+    switch(state) {
+        case 'bootstrap':
+        case 'discover':
+        case 'connected':
+        case 'rolling':
+        case 'error' : this._state = state; break;
+        default: {
+            console.error('programmatic erorr in setState');
+            system.exit(0);
+        }
+    }
+
+    __log('******STATE FOR EXTRACT CHANGED TO:'+this._state);
+}
+
+
+ExtractOrch.prototype.clearLastEtcdMessage = function( message )
+{
+    __log('setLastEtcdMessage:'+message);
+    this._etcd_last_message = message;
+
+}
+
+ExtractOrch.prototype.setLastEtcdMessage = function( message )
+{
+    __log('setLastEtcdMessage:'+message);
+    this._etcd_last_message = message;
+
+}
+
+ExtractOrch.prototype.getState = function()
+{
+    return self._state;
 }
 
 /**
  * All flows for this token are valid [bootstrap->discover] transition
  */
-ExtractOrch.prototype.waitForDiscoverState = function(wait)
+ExtractOrch.prototype.waitForDiscoverState = function()
 {
     __log("* waitForDiscoverState");
 
     var self  = this;
     var defer = q.defer();
 
-    if (wait == undefined)
-        wait = false;
-    
-    self.getMyFlows(self._token, wait).then( function(flows) {
+    self.getMyFlows(self._token).then( function(flows) {
         if (flows.length == 0) {
-            __log("* waitForDiscoverState --- no flows for me");  
-            return self.waitForDiscoverState(true);
+            __log("* waitForDiscoverState --- no flows for me");
+            return self.waitForDiscoverState();
         }
 
         self._extractFileManager = ExtractFileManager(flows);
-        
+
         var validation_arr = self._extractFileManager.validateFlows();
 
         if (validation_arr.length != 0) {
-            __log('Flows validation failed!');
-            defer.reject(validation_arr);
-            return;
+            __log('Flows validation failed! Waiting for a change');
+            self.setLastEtcdMessage(validation_arr.join(','));
+            self.setState('error');
+            self.waitForStageChange(self._token).then( function() {
+                self.waitForDiscoverState().then(function() {
+                    defer.resolve();
+                });
+            });
+
+        } else {
+            __log('validation OK!');
+            //
+            //  Monitor for stage_changed
+            //
+            self.monitorStageChange(self._token);
+
+            defer.resolve();
+            return defer.promise;
         }
 
-        __log('validation OK!');
- 
         }, function(err) {
-            console.error('Cannot get flows from ETCD! Waiting now for a change in '+self._etcd_stageflow+"/"+self._token);
-            self.waitForDiscoverState(true);
-        });
+            console.error('Cannot get flows from ETCD! Waiting now for a change in '
+                                        +self._etcd_stageflow+"/"+self._token);
+            self.setState('error');
+            self.waitForStageChange(self._token).then( function() {
+                self.waitForDiscoverState().then(function() {
+                    defer.resolve();
+                });//.done();
+            });//.done();
+        })//.done();
 
     return defer.promise;
-
 }
 
-ExtractOrch.prototype.getMyFlows = function(token, wait)
+
+ExtractOrch.prototype.monitorStageChange = function(token)
 {
-    __log("getMyFlows token:"+token+", wait:"+wait);
+   __log('monitorStageChange');
+   var self = this;
+   return self.waitForStageChange(token).then(function() {
+     self.emit('stage_changed');
+     self.monitorStageChange(token)
+   }).done();
+}
+
+ExtractOrch.prototype.waitForStageChange = function(token)
+{
+    __log("waitForStageChange:"+token);
 
     var def  = q.defer();
     var self = this;
 
-    if (wait == undefined)
-        wait = false;
 
-    self._store.get(self._etcd_stageflow+"/"+token, 
-                    {'recursive':true, 'wait':wait}, function(e,r) {
+    self._store.get(self._etcd_stageflow+"/"+token,
+                    {'recursive':true, 'wait':true}, function(e,r) {
 
         if (e) {
             console.error('ERROR While connecting to etcd! Process will terminate');
             system.exit(0);
         }
 
-        if (r.node == undefined || r.node.nodes == undefined || r.node.nodes.length == undefined) {
+        def.resolve();
+    });
+
+    return def.promise;
+}
+
+ExtractOrch.prototype.getMyFlows = function(token)
+{
+    __log("getMyFlows token:"+token);
+
+    var def  = q.defer();
+    var self = this;
+
+    self._store.get(self._etcd_stageflow+"/"+token,
+                    {'recursive':true}, function(e,r) {
+
+        if (e) {
+            console.error('ERROR While connecting to etcd! Process will terminate');
+            system.exit(0);
+        }
+
+        if (r.node == undefined || r.node.nodes == undefined
+            || r.node.nodes.length == undefined) {
             def.reject(e);
             return;
         }
 
-        console.dir(r.node.nodes);
         __log('resolving '+r.node.nodes);
         def.resolve(r.node.nodes);
     });
@@ -140,6 +238,8 @@ ExtractOrch.prototype.getNode = function(key)
 
 ExtractOrch.prototype.getNextStageAgentFromPool = function()
 {
+    __log('getNextStageAgentFromPool');
+
     var def = q.defer();
 
     var self = this;
@@ -170,14 +270,23 @@ ExtractOrch.prototype.keepAlive = function()
         //create hostname#pid
         self.etcdCreateNodeDirIfNeeded().then( function(d) {
             self.etcdSetStatus().then( function(d) {
+              try {
+                //if (self._ttl_timer instanceof Timer) {
+                //    self._ttl_timer.stop();
+                //    //__log("disconnect");
+                //    self._ttl_timer.timeout.disconnect(self, self.keepAlive);
+                //  }
 
-                self._ttl_timer = undefined;
+                //self._ttl_timer = undefined;
 
-                self._ttl_timer = new Timer();
-                self._ttl_timer.timeout.connect( self, self.keepAlive );
+                if (! (self._ttl_timer instanceof Timer)) {
+                    self._ttl_timer = new Timer();
+                    self._ttl_timer.timeout.connect( self, self.keepAlive );
+                    self._ttl_timer.setSingleShot(true);
+                }
 
-                self._ttl_timer.setSingleShot(true);
                 self._ttl_timer.start(self._ttl);
+              } catch(e) { console.writeln(e);}
             }, function(e) {
                 console.error("[error orch.js.etcd] etcdSetStatus etcd error:"+e);
                 system.exit(0);
@@ -236,8 +345,13 @@ ExtractOrch.prototype.etcdSetStatus = function()
                 self._store.set(self.nodeName()+"/"+"id", self.idName(),function(e,r) {
                     if (e)
                             def.reject(new Error("cannot set key"));
-                    else
-                        def.resolve();
+                    else {
+                        self._store.set(self.nodeName()+"/"+"message", self._etcd_last_message,function(e,r) {
+                            if (e)
+                                def.reject(new Error("cannot set key"));
+                            def.resolve();
+                        });
+                    }
                 });
             }
         });
