@@ -360,17 +360,16 @@ MetaCouchManager.prototype.viewGlobalContent = function(db)
 
     database.view('metastore', view, function(e, b) {
         var files = [];
-
         if (e) {
             def.reject({status:e.statusCode, 
                         error:e.error, 
                         reason:e.reason})
             return e;
         }
-
-        for (var i in b.rows) {
-            files.push(new Buffer(b.rows[i].value, 'base64'));
-        }
+        if (b && b.rows != undefined)
+            for (var i=0;i< b.total_rows;i++) {
+                files.push(new Buffer(b.rows[i].value, 'base64'));
+            }
 
         def.resolve(Buffer.concat(files));
     });

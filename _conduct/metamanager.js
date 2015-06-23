@@ -27,7 +27,7 @@ MetaManager.prototype.findObjectsByExport = function( storeid, name )
     var defer = q.defer();
     
     if (name == undefined) {
-        def.reject({status:400, error:"Not found", 
+        defer.reject({status:400, error:"Not found", 
                     reason:"name query not provided"});
         return;
     }
@@ -151,7 +151,7 @@ MetaManager.prototype.createMetaObject = function( storeid,  /*string*/
                                     GLOBAL.metaCouchManager.createObject(storeid, name, metaobj, r)
                                         .then( function(d) {
                                             defer.resolve({status:200, 'exports':r});
-                                            temp.cleanup();
+                                            //temp.cleanup();
                                         }, function(e) {
                                             console.dir(e);
                                             defer.reject(e); 
@@ -272,7 +272,6 @@ MetaManager.prototype.atomboxDDLEvaluate = function( name, global_buffer, code )
 
 MetaManager.prototype.atomboxParseOutput = function( output )
 {
-
     if (output != undefined && output.toString().replace(/ /gi,"").length == 0) {
         return {'error':'Fatal error - Atombox failed to start!'};
     }
@@ -281,21 +280,20 @@ MetaManager.prototype.atomboxParseOutput = function( output )
     var exp = [];
     var matches = output.match(/ \w+: \[Function\]/gi);
     if (matches != null) {
-        for (var m in matches) {
-            matches[m] = matches[m].replace(": [Function]", "").replace(' ',"");
+        for (var m=0; m<matches.length;m++) {
+            matches[m] = matches[m].toString().replace(": [Function]", "").replace(' ',"");
             exp.push(matches[m]);
         }
 
         return {'exports': exp};
     }
-
     matches = output.match(/file:.*:[0-9]+:[0-9]+.*/gi);
     if (matches == null)
         matches = output.match(/ddl parse error.*\.\.\. .*/gi);
 
     if (matches != null) {
         debug('atomboxParseOutput:'+"exports:"+exp+",errors:"+matches[0]);
-        return {'error':matches[0].replace(/file\:/gi,"")
+        return {'error':matches[0].toString().replace(/file\:/gi,"")
                 .replace(/ddl parse error.*\.\.\. /gi,"")};
     } else {
         return {'exports':[]};

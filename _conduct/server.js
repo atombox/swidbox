@@ -23,15 +23,18 @@ var MetaManager           = require('./metamanager.js');
 var StageFlowManager      = require('./stageflowmanager.js');
 var StageCouchManager     = require('./stagecouchmanager.js');
 
-GLOBAL.metaCouchManager  = new MetaCouchManager ('10.57.4.72', 9726);
-GLOBAL.stageCouchManager = new StageCouchManager('10.57.4.72', 9726);
+GLOBAL.metaCouchManager  = new MetaCouchManager ('127.0.0.1', 8083);
+GLOBAL.stageCouchManager = new StageCouchManager('127.0.0.1', 4001);
 
 
 GLOBAL.metaManager       = new MetaManager
-             ('C:\\tmpuser\\tools\\work\\_git\\atomboxer_windows\\bin\\ab.exe');
+             ('ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer '+
+             ' ASAN_OPTIONS=symbolize=1'+
+             ' LD_LIBRARY_PATH=/home/ec2-user/_git/atombox/install/0.5/bin:'+
+             '$LD_LIBRARY_PATH /home/ec2-user/_git/atombox/install/0.5/bin/ab');
 
-GLOBAL.stageFlowManager  = new StageFlowManager(['127.0.0.1:4001',
-                                                 '127.0.0.1:2379']);
+GLOBAL.stageFlowManager  = new StageFlowManager(['127.0.0.1:8084',
+                                                 '127.0.0.1:4001']);
 
 
 app.use(compression());
@@ -41,7 +44,7 @@ app.use(swaggerize({
     handlers: path.resolve('./rest_handlers')
 }));
 
-var server = app.listen(3000, function() {
+var server = app.listen(8082, function() {
     try {
         console.log('CONNECTED');
     } catch(e) {console.log(e);}
