@@ -47,6 +47,14 @@ function ExtractFileManager(flows_arr_str)
 
 }
 
+ExtractFileManager.prototype.destroy = function()
+{
+    for (var ex in this._file_extractors) {
+        this._file_extractors[ex].destroy();
+        this._file_extractors = undefined;
+    }
+}
+
 /**
 * @return {Array} - array of errors
 */
@@ -68,36 +76,6 @@ ExtractFileManager.prototype.validateFlows = function()
    return errors;
 }
 
-// /**
-//  * @return {Array} error -if has error, else undefined
-//  */
-// ExtractFileManager.prototype.validateFlow = function(flow)
-// {
-//     var key      = flow.key;
-//     var flow_obj = undefined;
 
-//     try {
-//         flow_obj = JSON.parse(flow.value);
-//     } catch(e) {
-//         console.error('Flow object is invalid');
-//         system.exit(0);
-//     }
-
-//     __log('validateFlow '+flow.key+", file:"+flow_obj.file);
-
-//     if (!fs.exists(flow_obj.file))
-//         return flow_obj.file+" file does not exist";
-
-//     // try to open it
-//     var stream = undefined;
-//     try {
-//         stream = fs.open(flow_obj.file, 'rbw');
-//     } catch(e) {
-//         return flow_obj.file+' file is unreadable';
-//     }
-//     stream.close();
-
-//     return undefined;
-// }
 
 exports.ExtractFileManager = ExtractFileManager;

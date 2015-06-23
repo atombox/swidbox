@@ -7,7 +7,7 @@ var console = require("console");
 var fs      = require("fs");
 
 describe('Routing', function() {
-    var url = 'localhost:3000/api';
+    var url = 'inductum.com:8082/api';
 
     before(function(done) {
         request(url+'/metastore/').delete('store1').end(function(e, r) {

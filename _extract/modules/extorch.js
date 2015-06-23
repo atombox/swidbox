@@ -118,6 +118,11 @@ ExtractOrch.prototype.waitForDiscoverState = function()
             return self.waitForDiscoverState();
         }
 
+        if (self._extractFileManager instanceof ExtractFileManager) {
+            self._extractFileManager.destroy();
+            self._extractFileManager = undefined;
+        }
+
         self._extractFileManager = ExtractFileManager(flows);
 
         var validation_arr = self._extractFileManager.validateFlows();

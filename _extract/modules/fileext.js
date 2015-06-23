@@ -65,17 +65,29 @@ FileExtractor.prototype.wakeup = function()
 
 }
 
+FileExtractor.prototype.start = function()
+{
+  __log('start '+this._id);
+
+  this._timerobj = new Timer();
+  this._timerobj.timeout.connect( this, this.wakeup);
+  this._timerobj.start(this._timer);
+}
+
+FileExtractor.prototype.stop = function()
+{
+  __log('stop '+this._id);
+
+  this._timerobj.stop();
+  this._timerobj.timeout.disconnect(this, this.wakeup);
+  this._timerobj = undefined;
+}
+
+
 FileExtractor.prototype.destroy = function()
 {
     __log("FileExtractorUnstructured.prototype.destroy");
 
-    this._id    = undefined;
-    this._file  = undefined;
-    this._timer = undefined;
-
-    this._meta_store_id    = undefined;
-    this._meta_object_name = undefined;
-    this._meta_export_id   = undefined;
 
     this._file_stream = undefined;
 
@@ -84,9 +96,20 @@ FileExtractor.prototype.destroy = function()
         this._timerobj.stop();
         this._timerobj.timeout.disconnect(this, this.wakeup);
         this._timerobj = undefined;
+        console.dir(this);
       } catch(e) {
+          console.error(e); system.exit(0);
       }
+
     }
+    this._id    = undefined;
+    this._file  = undefined;
+    this._timer = undefined;
+
+    this._meta_store_id    = undefined;
+    this._meta_object_name = undefined;
+    this._meta_export_id   = undefined;
+
 }
 
 //
@@ -108,10 +131,6 @@ function FileExtractorUnstructured(id, file, timer,
                      meta_store_id, meta_object_name, meta_export);
 
   __log("FileExtractorUnstructured name:"+this._id+"--"+this._timer+"s");
-
-  this._timerobj = new Timer();
-  this._timerobj.timeout.connect( this, this.wakeup);
-  this._timerobj.start(this._timer);
 }
 
 FileExtractorUnstructured.prototype = new FileExtractor;

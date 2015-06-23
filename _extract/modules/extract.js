@@ -70,6 +70,7 @@ Extractor.prototype.init = function()
 
                 self._stageclient.connectToStage().then( function(d) {
                     self._orch.setState('connected');
+                    self._stageclient.sendMessage('hello!');
                     def.resolve();
                 }, function(e) {
                     def.reject();
@@ -98,7 +99,7 @@ Extractor.prototype.bootstrap = function()
 {
     __log("Extractor.prototype.bootstrap");
 
-    
+
 }
 
 

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="13.1">
+  <zoom_level>9</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>423</x>
+      <y>369</y>
+      <w>171</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>FileExtractor
+~fileext.js
+--
+_id
+_file
+_timer
+_meta_store_id
+_meta_object_name
+_meta_export
+--
+-- validateFlow
+-- start
+-- stop
+-- wakeup
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>423</x>
+      <y>567</y>
+      <w>171</w>
+      <h>45</h>
+    </coordinates>
+    <panel_attributes>FileExtractorUnstructured
+~fileext.js
+--
+-- openStream
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>495</x>
+      <y>504</y>
+      <w>27</w>
+      <h>81</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>126</x>
+      <y>315</y>
+      <w>126</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>~goext.js
+function go()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>81</x>
+      <y>144</y>
+      <w>270</w>
+      <h>117</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;global&gt;&gt;
+ExtractOrch
+~extorch.js
+--
+_extractFileManager :ExtractFileManager
+_etcd
+_token
+--
++waitForDiscoverState
+-- setState
+-- clearLastEtcdMessage
+-- setLastEtcdMessage
+-- getState
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>423</x>
+      <y>189</y>
+      <w>171</w>
+      <h>63</h>
+    </coordinates>
+    <panel_attributes>ExtractFileManager
+~exfilmgr.js
+--
+_file_extractors : Array
+--
+-- validateFlows
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>342</x>
+      <y>189</y>
+      <w>99</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+
+m2=0..1
+</panel_attributes>
+    <additional_attributes>90.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>504</x>
+      <y>243</y>
+      <w>45</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+
+m2=0..*
+</panel_attributes>
+    <additional_attributes>10.0;140.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>189</x>
+      <y>252</y>
+      <w>27</w>
+      <h>81</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>639</x>
+      <y>324</y>
+      <w>144</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;global&gt;&gt;
+StageManager
+~extract.js
+--
+--
++init
++destroy
++addNewClient()
++getStageIP
++getStagePort
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>342</x>
+      <y>144</y>
+      <w>378</w>
+      <h>198</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+m1=getNode(), IP and PORT</panel_attributes>
+    <additional_attributes>10.0;10.0;400.0;10.0;400.0;200.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>639</x>
+      <y>459</y>
+      <w>144</w>
+      <h>63</h>
+    </coordinates>
+    <panel_attributes>StageClient
+~stagecli.js
+--
+--
+-- connectToStage
+-- routeToStage</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>693</x>
+      <y>414</y>
+      <w>27</w>
+      <h>63</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+</diagram>

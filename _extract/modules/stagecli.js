@@ -96,9 +96,9 @@ StageClient.prototype.disconnectSocket = function()
    self._socket = undefined;
 }
 
-StageClient.prototype.handshake = function()
+StageClient.prototype.sendMessage = function( msg )
 {
-
+    this._socket.write(msg.toByteArray());
 }
 
 module.exports = StageClient;
