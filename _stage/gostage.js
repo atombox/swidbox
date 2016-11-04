@@ -2,10 +2,10 @@ var console = require("console");
 var system  = require("system");
 
 var IP   = '127.0.0.1';
-var PORT = 4002;
+var PORT = 8888;
 
-var orch = require("modules/stageorch")(['127.0.0.1:4001',
-                                         '127.0.0.1:2379'],
+var orch = require("modules/stageorch")(['127.0.0.1:8084',
+                                         '127.0.0.1:4001'],
                                         IP, PORT);
 
 

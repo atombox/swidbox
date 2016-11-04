@@ -3,7 +3,7 @@ info:
   title: "SwidBox _conduct API"
   description: "This is the RESTFULL API that _conduct will provide"
   version: "1.0.0"
-host: "localhost:3000"
+host: "inductum.com:8088"
 schemes: 
   - "http"
 basePath: "/api"

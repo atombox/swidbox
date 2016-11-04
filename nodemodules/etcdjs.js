@@ -6,15 +6,13 @@ var u = require('http/url');
 var http = require("http");
 var console = require("console");
 
-function abLogger(cfg)
-{
+function abLogger(cfg) {
     //console.log("[debug ->]")
     //console.dir(cfg);
     //console.log("[<- debug]")
 }
 
-var request = function abHttpAgent(req, callback)
-{
+var request = function abHttpAgent(req, callback) {
     var url = u.parse(req.uri);
     if (!req.headers)
         req.headers = {};
@@ -24,47 +22,64 @@ var request = function abHttpAgent(req, callback)
     if (req.form) {
         req.headers['content-type'] = 'application/x-www-form-urlencoded';
         req.body = querystring.stringify(req.form);
-    } else {
+    }
+    else {
         if (req.json) {
-            req.headers['content-type']='application/json';
+            req.headers['content-type'] = 'application/json';
         }
     }
 
     if (req.qs && req.qs !== {}) {
-        url.pathname += ("?"+querystring.stringify(req.qs));
+        url.pathname += ("?" + querystring.stringify(req.qs));
     }
 
     abLogger(req);
-  
-    var rqst = http.request({host:url.hostname,
-                             port:parseInt(url.port),
-                             method:req.method,
-                             headers:req.headers,
-                             path:url.pathname
-                            });
 
-    rqst.response.connect(function( resp ) {
+    var rqst = http.request({
+        host: url.hostname,
+        port: parseInt(url.port),
+        method: req.method,
+        headers: req.headers,
+        path: url.pathname
+    });
+
+    var slot_response = undefined;
+    rqst.response.connect(slot_response = function(resp) {
         var body;
         var err = undefined;
+        var slot_data = undefined;
+        var slot_finished = undefined;
+        var slot_error = undefined;
 
-        resp.data.connect(function (data) {
+        resp.data.connect(slot_data = function(data) {
             body = data.decodeToString();
             //console.log('[debug] response:'+body);
         });
 
-        resp.finished.connect( function() {
-            rqst = undefined;            
+        resp.finished.connect(slot_finished = function() {
+            rqst.response.disconnect(slot_response);
+            rqst = undefined;
+
             if (err) {
                 callback(err);
-            } else {
-                callback(err, {'headers':resp.headers,
-                               'statusCode':resp.status,
-                               'uri':resp.url(),
-                               'body':JSON.parse(body)});
             }
+            else {
+                callback(err, {
+                    'headers': resp.headers,
+                    'statusCode': resp.status,
+                    'uri': resp.url(),
+                    'body': JSON.parse(body)
+                });
+            }
+            resp.data.disconnect(slot_data);
+            resp.error.disconnect(slot_error);
+            resp.finished.disconnect(slot_finished);
+            resp = undefined;
+            rqst = undefined;
+            
         });
 
-        resp.error.connect(function(e) {
+        resp.error.connect(slot_error = function(e) {
             err = e;
         });
     });
@@ -84,19 +99,28 @@ var Stats = function(client) {
 
 Stats.prototype.self = function(machine, cb) {
     if (typeof machine === 'function') return this.self(null, machine);
-    this._client._request({uri:(machine || '')+'/v2/stats/self', json:true}, cb);
+    this._client._request({
+        uri: (machine || '') + '/v2/stats/self',
+        json: true
+    }, cb);
 };
 
 Stats.prototype.store = function(cb) {
-    this._client._request({uri:'/v2/stats/store', json:true}, cb);
+    this._client._request({
+        uri: '/v2/stats/store',
+        json: true
+    }, cb);
 };
 
 Stats.prototype.leader = function(cb) {
-    this._client._request({uri:'/v2/stats/leader', json:true}, cb);
+    this._client._request({
+        uri: '/v2/stats/leader',
+        json: true
+    }, cb);
 };
 
 var normalizeUrl = function(url) {
-    url = url.indexOf('://') === -1 ? 'http://'+url : url;
+    url = url.indexOf('://') === -1 ? 'http://' + url : url;
     url = url.replace(/\/$/, '');
     if (!/:\d+/.test(url)) url += ':4001';
     return url;
@@ -125,7 +149,7 @@ var Client = function(host, opts) {
 
     if (!this._refresh) return;
 
-    this._interval = setInterval(this.machines.bind(this, noop), 30*1000);
+    this._interval = setInterval(this.machines.bind(this, noop), 30 * 1000);
     if (this._interval.unref) this._interval.unref();
 };
 
@@ -138,12 +162,12 @@ Client.prototype.set = function(key, value, opts, cb) {
     var form = {};
 
     if (value) form['value'] = value;
-    if (opts.ttl) form.ttl = ''+opts.ttl;
+    if (opts.ttl) form.ttl = '' + opts.ttl;
     if (opts.dir) form.dir = true;
 
-    if (opts.prevExist !== undefined) form.prevExist = ''+opts.prevExist;
-    if (opts.prevValue !== undefined) form.prevValue = this._json ? JSON.stringify(opts.prevValue) : ''+opts.prevValue;
-    if (opts.prevIndex !== undefined) form.prevIndex = ''+opts.prevIndex;
+    if (opts.prevExist !== undefined) form.prevExist = '' + opts.prevExist;
+    if (opts.prevValue !== undefined) form.prevValue = this._json ? JSON.stringify(opts.prevValue) : '' + opts.prevValue;
+    if (opts.prevIndex !== undefined) form.prevIndex = '' + opts.prevIndex;
 
     this._request({
         method: 'PUT',
@@ -169,13 +193,13 @@ Client.prototype.get = function(key, opts, cb) {
     var qs = {};
 
     if (opts.wait) qs.wait = 'true';
-    if (opts.waitIndex !== undefined) qs.waitIndex = ''+opts.waitIndex;
+    if (opts.waitIndex !== undefined) qs.waitIndex = '' + opts.waitIndex;
     if (opts.recursive) qs.recursive = 'true';
     if (opts.sorted) qs.sorted = 'true';
     if (opts.consistent) qs.consistent = 'true';
 
     return this._request({
-        method:'GET',
+        method: 'GET',
         uri: this._key(key),
         qs: qs,
         json: true,
@@ -208,9 +232,9 @@ Client.prototype.del = Client.prototype.del = function(key, opts, cb) {
     if (!cb) cb = noop;
 
     var qs = {};
-    if (opts.prevExist !== undefined) qs.prevExist = ''+opts.prevExist;
-    if (opts.prevValue !== undefined) qs.prevValue = this._json ? JSON.stringify(opts.prevValue) : ''+opts.prevValue;
-    if (opts.prevIndex !== undefined) qs.prevIndex = ''+opts.prevIndex;
+    if (opts.prevExist !== undefined) qs.prevExist = '' + opts.prevExist;
+    if (opts.prevValue !== undefined) qs.prevValue = this._json ? JSON.stringify(opts.prevValue) : '' + opts.prevValue;
+    if (opts.prevIndex !== undefined) qs.prevIndex = '' + opts.prevIndex;
     if (opts.recursive) qs.recursive = 'true';
     if (opts.dir) qs.dir = 'true';
 
@@ -270,12 +294,14 @@ Client.prototype.rmdir = function(key, opts, cb) {
 };
 
 Client.prototype._key = function(key) {
-    return '/v2/keys/'+(key[0] === '/' ? key.slice(1) : key);
+    return '/v2/keys/' + (key[0] === '/' ? key.slice(1) : key);
 };
 
 Client.prototype.machines = function(cb) {
     var self = this;
-    this._request({uri:'/v2/machines'}, function(err, body) {
+    this._request({
+        uri: '/v2/machines'
+    }, function(err, body) {
         if (err) return cb(err);
 
         body = body.trim();
@@ -296,30 +322,32 @@ Client.prototype.machines = function(cb) {
 };
 
 Client.prototype.leader = function(cb) {
-    this._request({uri:'/v2/leader'}, cb);
+    this._request({
+        uri: '/v2/leader'
+    }, cb);
 };
 
 Client.prototype.destroy = function() {
-    console.errror("Not implemented!");
-    //this._destroyed = true;
-    //if (this._interval) clearInterval(this._interval);
-    //this._requests.forEach(function(request) {
-    //  request.abort();
-    //    if (request.timeoutTimer) clearTimeout(request.timeoutTimer);
-    //    if (request.listeners('error').length) request.emit('error', new Error('store destroyed'));
-    //});
+    console.log('Client.prototype.destroy');
+    this._destroyed = true;
+    if (this._interval) clearInterval(this._interval);
+    this._requests.forEach(function(request) {
+        request.abort();
+        if (request.timeoutTimer) clearTimeout(request.timeoutTimer);
+        if (request.listeners('error').length) request.emit('error', new Error('store destroyed'));
+    });
     this._requests = [];
 };
 
 var decodeJSON = function(node) {
-    console.writeln("decodeJSON");
+    console.write("decodeJSON");
     if (node.nodes) node.nodes.forEach(decodeAll);
     if (node.value !== undefined) node.value = JSON.parse(node.value);
 };
 
 var toError = function(response) {
     var body = response.body;
-    if (!body || !body.message) return new Error('bad status: '+response.statusCode);
+    if (!body || !body.message) return new Error('bad status: ' + response.statusCode);
 
     var err = new Error(body.message);
     err.code = body.errorCode;
@@ -329,12 +357,18 @@ var toError = function(response) {
     return err;
 };
 
-var gc = function(list, item) {
-    var i = list.lastIndexOf(item);
-    if (i === -1) return;
-    if (i === list.length-1) list.pop();
-    else if (i === 0) list.shift();
-    else list.splice(i, 1);
+var gcc = function(list, item) {
+    try {
+        var i = list.lastIndexOf(item);
+        if (i === -1) return;
+        if (i === list.length - 1) list.pop();
+        else if (i === 0) list.shift();
+        else list.splice(i, 1);
+    }
+    catch (e) {
+        console.dir(e);
+        console.error(e);
+    }
 };
 
 var nextTick = function(cb, err, val) {
@@ -343,6 +377,7 @@ var nextTick = function(cb, err, val) {
 };
 
 Client.prototype._request = function(opts, cb) {
+
     var self = this;
     var tries = this._hosts.length;
     var path = opts.uri[0] === '/' && opts.uri;
@@ -354,40 +389,41 @@ Client.prototype._request = function(opts, cb) {
     if (this._destroyed) return nextTick(cb, new Error('store destroyed'));
 
     var req = request(opts, function onresponse(err, response) {
-        gc(self._requests, req);
-        
-        if (canceled) return;
-        if (self._destroyed) return cb(new Error('store destroyed'));
-        if (err && tries-- > 0) {
-            opts.uri = self._next()+path;
-            return request(opts, onresponse);
-        }
-
-        if (err) return cb(err);
-
-        if (response.statusCode === 307) {
-            opts.uri = response.headers.location;
-            return request(opts, onresponse);
-        }
-        
-        if (response.statusCode === 404 && !opts.method || opts.method === 'GET') return cb(null, response.body);
-        if (response.statusCode > 299) return cb(toError(response));
-
-        var body = response.body;
-
-        if (!self._json || !body.node) return cb(null, body);
-
         try {
-            decodeJSON(body.node);
-        } catch (err) {
-            return cb(err);
+            gcc(self._requests, req);
+            if (canceled) return;
+            if (self._destroyed) return cb(new Error('store destroyed'));
+            if (err && tries-- > 0) {
+                opts.uri = self._next() + path;
+                return request(opts, onresponse);
+            }
+            if (err) return cb(err);
+            if (response.statusCode === 307) {
+                opts.uri = response.headers.location;
+                return request(opts, onresponse);
+            }
+            if (response.statusCode === 404 && !opts.method || opts.method === 'GET') return cb(null, response.body);
+            if (response.statusCode > 299) return cb(toError(response));
+            var body = response.body;
+
+            if (!self._json || !body.node) return cb(null, body);
+            console.log('7');
+            try {
+                decodeJSON(body.node);
+            }
+            catch (err) {
+                return cb(err);
+            }
+
+            cb(null, body);
         }
-
-        cb(null, body);
+        catch (e) {
+            console.error(e);
+        }
     });
-
+    
     this._requests.push(req);
-
+    
     return function destroy() {
         canceled = true;
         req.abort();

@@ -20,7 +20,7 @@ function StageOrch(etcd, ip, port)
     this._etcd_prefix = "/stage/pool/";
 
     //  the timeout in seconds
-    this._ttl = 5;
+    this._ttl = 2;
 
     // address for tcp/ip binding
     this._ip = ip;
@@ -76,6 +76,7 @@ StageOrch.prototype.setLastEtcdMessage = function( message )
 
 StageOrch.prototype.getState = function()
 {
+    var self = this;
     return self._state;
 }
 
@@ -94,6 +95,7 @@ StageOrch.prototype.keepAlive = function()
                     self._ttl_timer.timeout.connect( self, self.keepAlive );
                     self._ttl_timer.setSingleShot(true);
                 }
+                console.dir(system.processStats());
                 self._ttl_timer.start(self._ttl);
 
             }, function(e) {

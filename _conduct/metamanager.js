@@ -151,7 +151,7 @@ MetaManager.prototype.createMetaObject = function( storeid,  /*string*/
                                     GLOBAL.metaCouchManager.createObject(storeid, name, metaobj, r)
                                         .then( function(d) {
                                             defer.resolve({status:200, 'exports':r});
-                                            //temp.cleanup();
+                                            temp.cleanup();
                                         }, function(e) {
                                             console.dir(e);
                                             defer.reject(e); 

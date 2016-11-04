@@ -30,7 +30,7 @@ function ExtractFileManager(flows_arr_str)
         switch(flow.type) {
           case 'unstructured': {
             this._file_extractors.push(new FileExtractorUnstructured(flow._name,
-              flow.file, flow.timer));
+                   flow.file, flow.timer));
           } break;
           case 'key_seq':
           case 'relative':
@@ -46,7 +46,9 @@ function ExtractFileManager(flows_arr_str)
     }
 
 }
-
+/**
+ *  Destroys the ExtractFileManager  
+ */
 ExtractFileManager.prototype.destroy = function()
 {
     for (var ex in this._file_extractors) {

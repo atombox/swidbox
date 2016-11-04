@@ -147,6 +147,7 @@ StageCouchManager.prototype.addStageFlow = function(token, name, flow, update)
                     'flows' : flows
                 }, token,function(e, b) {
                     if (e) {
+                        console.dir(e);
                         debug('[error] could not insert');
                         def.reject({status:e.statusCode, 
                                     error:e.error, 

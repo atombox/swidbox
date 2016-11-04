@@ -1,4 +1,4 @@
-var debug = require('debug')('swidbox:etcdmanager');
+avar debug = require('debug')('swidbox:etcdmanager');
 var nano  = require('nano');
 var q     = require('q');
 

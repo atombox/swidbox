@@ -7,7 +7,7 @@ var console = require("console");
 var fs      = require("fs");
 
 describe('Routing', function() {
-    var url = 'localhost:3000/api';
+    var url = 'http://inductum.com:8088/api';
 
     before(function(done) {
         //request(url+'/metastore/').delete('store1').end(function(e, r) {
@@ -23,74 +23,22 @@ describe('Routing', function() {
             });
         //});
     });
-    
-    describe('/stage/{name}', function() {
+
+    // describe('/stage/{name}', function() {
         it('should create a new flow', function(done) {
             var obj = {
-                "file": "c:\\tmp\\tmp.txt",
+                "file": "/tmp/tmp.txt",
                 "type": "unstructured",
                 "timer": 10
             };
-
+            console.log('put:'+url+'/metastore/stage/token123/');
             request(url+'/metastore/stage/token123/')
                 .put('unstruct').send(obj).set('Accept', 'application/json')
                 .end(function(e,r) {
 
                 console.dir(r.body);
-                if (e)
-                    throw e;
-                r.status.should.equal(200);
-                done();
-            });
-        });
-
-        it('should delete the flow', function(done) {
-            request(url+'/metastore/stage/token123/')
-                .delete('unstruct').set('Accept', 'application/json')
-                .end(function(e,r) {
-
-                if (e)
-                    throw e;
-
-                r.status.should.equal(200);
-                done();
-            });
-        });
-
-        it('should create a new flow', function(done) {
-            var obj = {
-                "file": "c:\\tmp\\tmp.txt",
-                "type": "unstructured",
-                "timer": 10
-            };
-
-            request(url+'/metastore/stage/token123/')
-                .put('unstruct').send(obj).set('Accept', 'application/json')
-                .end(function(e,r) {
-
-                console.dir(r.body);
-                if (e)
-                    throw e;
-                r.status.should.equal(200);
-                done();
-            });
-        });
-
-        it('should create a second flow', function(done) {
-            var obj = {
-                "file": "c:\\tmp\\emf.txt",
-                "type": "key_seq",
-                "timer": 10,
-                "meta_storeid": "mystore",
-                "meta_object_name": "ddlfemf",
-                "meta_export": "emf"
-            };
-
-            request(url+'/metastore/stage/token123/')
-                .put('emf').send(obj).set('Accept', 'application/json')
-                .end(function(e,r) {
-
                 if (e) {
+                    console.dir(e);
                     throw e;
                 }
                 r.status.should.equal(200);
@@ -98,26 +46,80 @@ describe('Routing', function() {
             });
         });
 
-        it('should fail validation', function(done) {
-            var obj = {
-                "file": "c:\\tmp\\key.txt",
-                "type": "key_seq",
-                "timer": 10,
-                "meta_storeid": "mystore",
-                "meta_object_name": "aprfds",
-                "meta_export": "NON_EXISTENT"
-            };
+    //     it('should delete the flow', function(done) {
+    //         request(url+'/metastore/stage/token123/')
+    //             .delete('unstruct').set('Accept', 'application/json')
+    //             .end(function(e,r) {
 
-            request(url+'/metastore/stage/token123/')
-                .put('emf').send(obj).set('Accept', 'application/json')
-                .end(function(e,r) {
+    //             if (e)
+    //                 throw e;
 
-                if (e)
-                    throw e;
-                r.status.should.equal(404);
-                done();
-            });
-        });
+    //             r.status.should.equal(200);
+    //             done();
+    //         });
+    //     });
+
+    //     it('should create a new flow', function(done) {
+    //         var obj = {
+    //             "file": "/tmp/tmp.txt",
+    //             "type": "unstructured",
+    //             "timer": 10
+    //         };
+
+    //         request(url+'/metastore/stage/token123/')
+    //             .put('unstruct').send(obj).set('Accept', 'application/json')
+    //             .end(function(e,r) {
+
+    //             console.dir(r.body);
+    //             if (e)
+    //                 throw e;
+    //             r.status.should.equal(200);
+    //             done();
+    //         });
+    //     });
+
+    //     it('should create a second flow', function(done) {
+    //         var obj = {
+    //             "file": "/tmp/emf.txt",
+    //             "type": "key_seq",
+    //             "timer": 10,
+    //             "meta_storeid": "mystore",
+    //             "meta_object_name": "ddlfemf",
+    //             "meta_export": "emf"
+    //         };
+
+    //         request(url+'/metastore/stage/token123/')
+    //             .put('emf').send(obj).set('Accept', 'application/json')
+    //             .end(function(e,r) {
+
+    //             if (e) {
+    //                 throw e;
+    //             }
+    //             r.status.should.equal(200);
+    //             done();
+    //         });
+    //     });
+
+    //     it('should fail validation', function(done) {
+    //         var obj = {
+    //             "file": "/tmp/key.txt",
+    //             "type": "key_seq",
+    //             "timer": 10,
+    //             "meta_storeid": "mystore",
+    //             "meta_object_name": "aprfds",
+    //             "meta_export": "NON_EXISTENT"
+    //         };
+
+    //         request(url+'/metastore/stage/token123/')
+    //             .put('emf').send(obj).set('Accept', 'application/json')
+    //             .end(function(e,r) {
+
+    //             if (e)
+    //                 throw e;
+    //             r.status.should.equal(404);
+    //             done();
+    //         });
+    //     });
 
     //     it('should update flow', function(done) {
     //         var obj = {
@@ -139,7 +141,7 @@ describe('Routing', function() {
     //             done();
     //         });
     //     });
-})
+    //})
 
 });
 

@@ -4,6 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var express    = require('express');
 var bodyParser = require('body-parser');
+var cors       = require('cors');
 //var multer     = require('multer');
 
 var compression     = require('compression');
@@ -15,6 +16,7 @@ var app = express();
 
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
 //app.use(multer());
 
 //swidbox classes
@@ -24,7 +26,7 @@ var StageFlowManager      = require('./stageflowmanager.js');
 var StageCouchManager     = require('./stagecouchmanager.js');
 
 GLOBAL.metaCouchManager  = new MetaCouchManager ('127.0.0.1', 8083);
-GLOBAL.stageCouchManager = new StageCouchManager('127.0.0.1', 4001);
+GLOBAL.stageCouchManager = new StageCouchManager('127.0.0.1', 8083);
 
 
 GLOBAL.metaManager       = new MetaManager
@@ -39,12 +41,13 @@ GLOBAL.stageFlowManager  = new StageFlowManager(['127.0.0.1:8084',
 
 app.use(compression());
 app.use(cookieParser());
+
 app.use(swaggerize({
     api: path.resolve('../RESTAPI/metastore.yml'),
     handlers: path.resolve('./rest_handlers')
 }));
 
-var server = app.listen(8082, function() {
+var server = app.listen(8088, function() {
     try {
         console.log('CONNECTED');
     } catch(e) {console.log(e);}

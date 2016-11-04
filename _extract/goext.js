@@ -7,11 +7,11 @@ q.stopUnhandledRejectionTracking();
 var log = function(msg)
 {
     console.log("[log] "+msg);
-}
+};
 
 var TOKEN   = "token123";
 var orch    = require("modules/extorch")(
-    ['127.0.0.1:4001','127.0.0.1:2379'], TOKEN);
+    ['127.0.0.1:8084','127.0.0.1:4001'], TOKEN);
 
 var extractor = undefined;
 
@@ -33,7 +33,7 @@ function go() {
             });
 
             orch.on('stage_changed', function() {
-               log('STAGE CHANGED, go again')
+               log('STAGE CHANGED, go again');
                orch.setState('discover');
                extractor.bootstrap();
             });
@@ -56,7 +56,7 @@ function go() {
             console.error(e);
             system.exit(0);
         });
-    })
+    });
 }
 
 go();
